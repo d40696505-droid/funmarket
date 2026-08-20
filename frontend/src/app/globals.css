@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  /* Фирменный зелёный (тема "стекло + природа") — используется на кнопках,
+     активных состояниях и чекбоксах по всему сайту. */
+  --accent: #558b2f;
+  --accent-light: #8bc34a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background-image:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.55)),
+    url("/auth-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* Идёт после базового body{} — иначе при равной специфичности медиа-запрос
+   проигрывает обычному правилу по порядку исходного кода и тёмная тема
+   никогда не применяется (это и было причиной нечитаемых светлых
+   заголовков на светлой "дымке" в тёмном режиме). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+
+  body {
+    background-image:
+      linear-gradient(to bottom, rgba(10, 10, 10, 0.75), rgba(10, 10, 10, 0.55)),
+      url("/auth-bg.jpg");
+  }
+}
+
+@layer components {
+  .input {
+    @apply rounded-lg border border-black/10 bg-background px-3 py-2 text-base outline-none focus:border-accent/60 dark:border-white/15 dark:focus:border-accent-light/60;
+  }
+
+  .btn-primary {
+    @apply rounded-full px-5 py-2.5 text-center text-sm font-medium text-white shadow-sm transition-transform hover:scale-[1.02] hover:opacity-95 active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100;
+    background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  }
+
+  .btn-secondary {
+    @apply rounded-full border border-black/10 px-5 py-2.5 text-sm font-medium transition-colors hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08];
+  }
+
+  .card {
+    @apply rounded-xl border border-black/10 bg-background shadow-sm transition-shadow hover:shadow-md dark:border-white/10;
+  }
+
+  /* Стекло на фото природы — только для входа/регистрации (см. globals.css). */
+  .auth-page {
+    @apply relative flex flex-1 items-center justify-center bg-cover bg-center px-4 py-12;
+    background-image:
+      linear-gradient(to bottom, rgba(10, 20, 10, 0.15), rgba(10, 25, 10, 0.45)),
+      url("/auth-bg.jpg");
+  }
+
+  .glass-card {
+    @apply w-full max-w-sm rounded-3xl border border-white/40 p-6 text-white shadow-2xl backdrop-blur-xl;
+    background: linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(120, 160, 100, 0.18)
+    );
+  }
+
+  .glass-input {
+    @apply w-full rounded-full border border-white/50 bg-white/10 px-4 py-2.5 text-white placeholder-white/70 outline-none backdrop-blur-sm transition-colors focus:border-white/90 focus:bg-white/20;
+  }
+
+  /* Hero-баннер на главной — тот же язык, что .glass-card, но не на весь
+     экран: фиксированная высота внутри обычной страницы. Горизонтальный
+     отступ задаёт не сам баннер (edge-to-edge под фото), а обёртка вокруг
+     .hero-glass в разметке — так его левый край совпадает с остальными
+     секциями страницы (mx-auto max-w-6xl px-4). */
+  .hero-nature {
+    @apply relative flex min-h-[360px] w-full items-center bg-cover bg-center py-10;
+    background-image:
+      linear-gradient(to bottom, rgba(10, 20, 10, 0.1), rgba(10, 25, 10, 0.5)),
+      url("/auth-bg.jpg");
+  }
+
+  .hero-glass {
+    @apply max-w-lg rounded-3xl border border-white/40 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8;
+    background: linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(120, 160, 100, 0.18)
+    );
+  }
+
+  /* Карточка услуги в стеклянном стиле — тот же рецепт, что .hero-glass,
+     но с непрозрачной светлой базой и тёмным текстом (в отличие от хиро,
+     эти карточки стоят не на тёмной фото-подложке, а на светлой "дымке"
+     body — белый текст .hero-glass был бы на них нечитаем). Базовая
+     непрозрачность выше, чем у .hero-glass (0.82 против 0.22) — иначе
+     в тёмной теме сквозь стекло просвечивает тёмное фото и текст/бейджи
+     теряют контраст. */
+  .card-glass {
+    @apply rounded-xl border border-white/40 shadow-sm backdrop-blur-xl transition-shadow hover:shadow-md;
+    background: linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.82),
+      rgba(160, 190, 140, 0.55)
+    );
+  }
+}
+
+/* Зелёные чекбоксы/радио по всему сайту — без правок в каждом файле. */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--accent);
+}
