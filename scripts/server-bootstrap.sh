@@ -1,10 +1,12 @@
 #!/bin/sh
-# HobbyHub — первичная настройка нового сервера (Ubuntu 24.04 LTS).
+# HobbyHub — первичная настройка нового сервера (Ubuntu, версия любая —
+# скрипт сам подбирает пакеты под неё).
 #
-# Ставит инфраструктуру: Node.js 22, PostgreSQL 16 + PostGIS, MinIO (+ mc),
-# Caddy, отдельного непривилегированного пользователя под приложение,
-# базовый firewall. Создаёт БД и MinIO-бакет со свежими сгенерированными
-# credentials (не копирует секреты со старого сервера).
+# Ставит инфраструктуру: Node.js 22, PostgreSQL + PostGIS (версия — та, что
+# дефолтная в репозиториях этого Ubuntu), MinIO (+ mc), Caddy, отдельного
+# непривилегированного пользователя под приложение, базовый firewall.
+# Создаёт БД и MinIO-бакет со свежими сгенерированными credentials (не
+# копирует секреты со старого сервера).
 #
 # НЕ разворачивает код приложения, НЕ настраивает Caddyfile под конкретный
 # домен и НЕ переносит данные — это отдельные шаги после того, как сервер
@@ -61,9 +63,19 @@ else
   log "Node.js уже $(node -v) — пропускаю"
 fi
 
-# ---------- PostgreSQL 16 + PostGIS ----------
-log "install PostgreSQL 16 + PostGIS"
-apt-get install -y postgresql-16 postgresql-16-postgis-3
+# ---------- PostgreSQL + PostGIS ----------
+# Версия не зашита жёстко — берём ту, что дефолтная в репозиториях этого
+# Ubuntu (на 24.04 это 16, на 26.04 может быть уже 17+ и т.д.), иначе пакет
+# postgresql-16 может просто не найтись на более новых релизах.
+log "install PostgreSQL + PostGIS"
+apt-get install -y postgresql postgresql-common
+PG_VERSION=$(pg_lsclusters --no-header | awk '{print $1}' | head -1)
+if [ -z "$PG_VERSION" ]; then
+  echo "Не удалось определить версию установленного PostgreSQL" >&2
+  exit 1
+fi
+log "обнаружен PostgreSQL ${PG_VERSION}, ставлю postgresql-${PG_VERSION}-postgis-3"
+apt-get install -y "postgresql-${PG_VERSION}-postgis-3"
 
 DB_NAME=hobbyhub
 DB_USER=hobbyhub
