@@ -93,6 +93,13 @@ END
 sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}'" | grep -q 1 || \
   sudo -u postgres createdb -O "$DB_USER" "$DB_NAME"
 
+# postgis не везде помечен "доверенным" расширением — создание может
+# требовать суперпользователя. Создаём заранее от postgres, чтобы
+# CREATE EXTENSION IF NOT EXISTS в миграции backend'а (под непривилегированной
+# ролью hobbyhub) просто увидел, что расширение уже есть, и пропустил шаг.
+sudo -u postgres psql -d "$DB_NAME" -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+sudo -u postgres psql -d "$DB_NAME" -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+
 report "# --- PostgreSQL (backend/.env) ---"
 report "DB_HOST=localhost"
 report "DB_PORT=5432"
