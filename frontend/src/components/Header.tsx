@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { AuthRequiredModal } from "@/components/AuthRequiredModal";
 import { getCategories, type Category } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { CITIES } from "@/lib/cities";
+import { OPEN_SUPPORT_CHAT_EVENT } from "@/lib/support-chat";
 
 const MOBILE_LINK_CLASS =
   "rounded-lg px-2 py-2 text-sm text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.08]";
@@ -21,6 +23,7 @@ export function Header() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   useEffect(() => {
     getCategories()
@@ -30,6 +33,15 @@ export function Header() {
 
   function closeMenu() {
     setMenuOpen(false);
+  }
+
+  function handleContactSupport() {
+    closeMenu();
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
+    window.dispatchEvent(new Event(OPEN_SUPPORT_CHAT_EVENT));
   }
 
   function handleLogout() {
@@ -196,6 +208,21 @@ export function Header() {
           )}
         </div>
 
+        <button
+          type="button"
+          onClick={handleContactSupport}
+          className="hidden shrink-0 items-center gap-1.5 rounded-full border border-black/10 px-3 py-1.5 text-sm text-zinc-600 hover:bg-black/[.04] md:flex dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/[.08]"
+        >
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+            />
+          </svg>
+          Написать нам
+        </button>
+
         <div className="ml-auto hidden shrink-0 items-center gap-3 text-sm md:flex">
           {loading ? null : user ? (
             <>
@@ -281,6 +308,10 @@ export function Header() {
             </div>
           )}
 
+          <button type="button" onClick={handleContactSupport} className={`${MOBILE_LINK_CLASS} text-left`}>
+            Написать нам
+          </button>
+
           {loading ? null : user ? (
             <>
               <Link
@@ -309,6 +340,13 @@ export function Header() {
             </>
           )}
         </nav>
+      )}
+
+      {showAuthPrompt && (
+        <AuthRequiredModal
+          onClose={() => setShowAuthPrompt(false)}
+          message="Чтобы написать в поддержку, нужно войти в аккаунт или зарегистрироваться."
+        />
       )}
     </header>
   );

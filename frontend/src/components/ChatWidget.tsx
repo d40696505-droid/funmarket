@@ -16,6 +16,7 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { getChatSocket } from "@/lib/socket";
+import { OPEN_SUPPORT_CHAT_EVENT } from "@/lib/support-chat";
 
 const POLL_INTERVAL_MS = 4000;
 const WS_CONNECT_TIMEOUT_MS = 3000;
@@ -77,6 +78,19 @@ export function ChatWidget() {
       .then(setSupportContact)
       .catch(() => setSupportContact(null));
   }, [user]);
+
+  // Кнопка "Написать нам" в шапке дёргает этот виджет извне через
+  // window-событие (нет общего стейта между Header и ChatWidget) — просто
+  // открываем виджет и сразу переходим в диалог с поддержкой.
+  useEffect(() => {
+    if (!user) return;
+    function handleOpenSupportEvent() {
+      setOpen(true);
+      void handleOpenSupport();
+    }
+    window.addEventListener(OPEN_SUPPORT_CHAT_EVENT, handleOpenSupportEvent);
+    return () => window.removeEventListener(OPEN_SUPPORT_CHAT_EVENT, handleOpenSupportEvent);
+  }, [user, supportContact, chats]);
 
   // WebSocket подключается один раз для пользователя (не только пока
   // открыт конкретный диалог) — событие chat:notify эмитится бэкендом в
