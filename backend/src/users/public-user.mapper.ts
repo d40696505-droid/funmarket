@@ -12,6 +12,7 @@ export function toPublicUser(user: User) {
     brandName: user.brandName,
     bio: user.bio,
     city: user.city,
+    cityPendingModeration: user.cityPendingModeration,
     sellerType: user.sellerType,
     skills: user.skills,
     // Приватные данные о самом пользователе — видны только ему (toPublicUser

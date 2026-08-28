@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  approveCityReview,
   approveService,
+  getCityReviewQueue,
   getModerationQueue,
   getSellersForVerification,
+  rejectCityReview,
   rejectServiceModeration,
   verifySeller,
   type PublicUser,
@@ -16,12 +19,14 @@ import { useAuth } from "@/lib/auth-context";
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState<"moderation" | "sellers">("moderation");
+  const [tab, setTab] = useState<"moderation" | "sellers" | "cities">("moderation");
 
   const [services, setServices] = useState<Service[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [sellers, setSellers] = useState<PublicUser[]>([]);
   const [sellersLoading, setSellersLoading] = useState(true);
+  const [cityUsers, setCityUsers] = useState<PublicUser[]>([]);
+  const [cityUsersLoading, setCityUsersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,10 +53,20 @@ export default function AdminPage() {
       .finally(() => setSellersLoading(false));
   }
 
+  function reloadCityUsers() {
+    Promise.resolve()
+      .then(() => setCityUsersLoading(true))
+      .then(() => getCityReviewQueue())
+      .then(setCityUsers)
+      .catch(() => setCityUsers([]))
+      .finally(() => setCityUsersLoading(false));
+  }
+
   useEffect(() => {
     if (!user?.isAdmin) return;
     reloadServices();
     reloadSellers();
+    reloadCityUsers();
   }, [user]);
 
   async function handleApprove(id: string) {
@@ -86,6 +101,26 @@ export default function AdminPage() {
     }
   }
 
+  async function handleApproveCity(userId: string) {
+    setError(null);
+    try {
+      await approveCityReview(userId);
+      reloadCityUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось одобрить город");
+    }
+  }
+
+  async function handleRejectCity(userId: string) {
+    setError(null);
+    try {
+      await rejectCityReview(userId);
+      reloadCityUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось отклонить город");
+    }
+  }
+
   if (authLoading || !user || !user.isAdmin) {
     return (
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
@@ -112,6 +147,13 @@ export default function AdminPage() {
           className={`rounded-full px-3 py-1 ${tab === "sellers" ? "bg-accent text-white" : "hover:bg-black/[.04] dark:hover:bg-white/[.08]"}`}
         >
           Верификация продавцов
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("cities")}
+          className={`rounded-full px-3 py-1 ${tab === "cities" ? "bg-accent text-white" : "hover:bg-black/[.04] dark:hover:bg-white/[.08]"}`}
+        >
+          Города на проверке
         </button>
       </div>
 
@@ -189,6 +231,43 @@ export default function AdminPage() {
                 >
                   {seller.isSellerVerified ? "Снять верификацию" : "Верифицировать"}
                 </button>
+              </li>
+            ))}
+          </ul>
+        ))}
+
+      {tab === "cities" &&
+        (cityUsersLoading ? (
+          <p className="text-sm text-zinc-500">Загрузка…</p>
+        ) : cityUsers.length === 0 ? (
+          <p className="text-sm text-zinc-500">Нет городов на проверке</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {cityUsers.map((cityUser) => (
+              <li key={cityUser.id} className="card flex items-center justify-between gap-2 p-4">
+                <div>
+                  <p className="font-medium">
+                    {cityUser.brandName || [cityUser.firstName, cityUser.lastName].filter(Boolean).join(" ") || cityUser.email}
+                  </p>
+                  <p className="text-sm text-zinc-500">{cityUser.email}</p>
+                  <p className="mt-1 text-sm">
+                    Указал город: <span className="font-medium">{cityUser.city}</span>
+                  </p>
+                </div>
+                <div className="flex gap-2 text-sm">
+                  <button
+                    onClick={() => handleApproveCity(cityUser.id)}
+                    className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                  >
+                    Одобрить
+                  </button>
+                  <button
+                    onClick={() => handleRejectCity(cityUser.id)}
+                    className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                  >
+                    Отклонить
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

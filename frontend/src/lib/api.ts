@@ -20,6 +20,7 @@ export interface PublicUser {
   brandName: string | null;
   bio: string | null;
   city: string | null;
+  cityPendingModeration: boolean;
   sellerType: "private" | "professional" | null;
   skills: string[];
   interests: string[];
@@ -836,6 +837,18 @@ export function verifySeller(userId: string, verified: boolean) {
     method: "PATCH",
     body: JSON.stringify({ verified }),
   });
+}
+
+export function getCityReviewQueue() {
+  return request<PublicUser[]>("/api/users/admin/city-review-queue");
+}
+
+export function approveCityReview(userId: string) {
+  return request<PublicUser>(`/api/users/admin/${userId}/approve-city`, { method: "PATCH" });
+}
+
+export function rejectCityReview(userId: string) {
+  return request<PublicUser>(`/api/users/admin/${userId}/reject-city`, { method: "PATCH" });
 }
 
 export function resolveDispute(bookingId: string, resolution: "release" | "refund") {

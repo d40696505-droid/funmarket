@@ -24,7 +24,7 @@ export default function LoginPage() {
       const tokens = await login({ email, password });
       storeTokens(tokens);
       setUser(tokens.user);
-      router.push("/profile");
+      router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось войти");
     } finally {

@@ -14,6 +14,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { JwtPayload } from '../auth/auth.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { toProfileSummary, toPublicUser } from './public-user.mapper';
 import { UsersService } from './users.service';
@@ -40,7 +41,28 @@ export class UsersController {
     @CurrentUser() currentUser: JwtPayload,
     @Body() dto: UpdateProfileDto,
   ) {
-    const user = await this.usersService.update(currentUser.sub, dto);
+    const user = await this.usersService.updateProfile(currentUser.sub, dto);
+    return toPublicUser(user);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Get('admin/city-review-queue')
+  async getCityReviewQueue() {
+    const users = await this.usersService.findCityReviewQueue();
+    return users.map(toPublicUser);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Patch('admin/:id/approve-city')
+  async approveCity(@Param('id') id: string) {
+    const user = await this.usersService.approveCity(id);
+    return toPublicUser(user);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Patch('admin/:id/reject-city')
+  async rejectCity(@Param('id') id: string) {
+    const user = await this.usersService.rejectCity(id);
     return toPublicUser(user);
   }
 

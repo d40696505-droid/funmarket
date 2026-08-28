@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CITIES } from '../services/cities';
+import type { UpdateProfileDto } from './dto/update-profile.dto';
 import { User } from './user.entity';
 
 @Injectable()
@@ -66,6 +68,34 @@ export class UsersService {
   async update(id: string, data: Partial<User>): Promise<User> {
     await this.usersRepository.update(id, data);
     return this.findById(id) as Promise<User>;
+  }
+
+  // Город вне canonical-списка (CITIES) помечается на модерацию — сама
+  // смена применяется сразу (не блокируем пользователя), просто до
+  // проверки админом город не считается "подтверждённым".
+  updateProfile(id: string, dto: UpdateProfileDto): Promise<User> {
+    const data: Partial<User> = { ...dto };
+    if (dto.city !== undefined) {
+      data.cityPendingModeration = Boolean(
+        dto.city && !(CITIES as readonly string[]).includes(dto.city),
+      );
+    }
+    return this.update(id, data);
+  }
+
+  findCityReviewQueue(): Promise<User[]> {
+    return this.usersRepository.find({
+      where: { cityPendingModeration: true },
+      order: { updatedAt: 'DESC' },
+    });
+  }
+
+  approveCity(id: string): Promise<User> {
+    return this.update(id, { cityPendingModeration: false });
+  }
+
+  rejectCity(id: string): Promise<User> {
+    return this.update(id, { city: null, cityPendingModeration: false });
   }
 
   // Хард-делит достаточен, пока на user_id ничего не ссылается.

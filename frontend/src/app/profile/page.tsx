@@ -6,6 +6,7 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { updateMe, uploadAvatarFile, type PublicUser } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { CITIES } from "@/lib/cities";
 
 export default function ProfilePage() {
   const { user, loading, setUser } = useAuth();
@@ -172,7 +173,23 @@ function ProfileForm({
       </label>
       <label className="flex flex-col gap-1 text-sm">
         <span className="text-zinc-600 dark:text-zinc-400">Город</span>
-        <input value={city} onChange={(e) => setCity(e.target.value)} className="input" />
+        <input
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          list="cities-datalist"
+          placeholder="Начните вводить город"
+          className="input"
+        />
+        <datalist id="cities-datalist">
+          {CITIES.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
+        {city && !(CITIES as readonly string[]).includes(city) && (
+          <span className="text-xs text-zinc-500">
+            Города нет в списке — сохранится, но его проверит модератор
+          </span>
+        )}
       </label>
       {(user.role === "seller" || user.role === "both") && (
         <>
