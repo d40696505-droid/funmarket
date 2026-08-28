@@ -137,6 +137,14 @@ export class User {
   @Column({ type: 'varchar', nullable: true, select: false })
   refreshTokenHash: string | null;
 
+  // Мягкое удаление: бронирования/платежи/отзывы ссылаются на users.id
+  // внешними ключами (часть — ON DELETE RESTRICT), поэтому настоящий DELETE
+  // упал бы для любого активного пользователя. Вместо этого — анонимизация
+  // (см. UsersService.anonymize): персональные поля стираются, строка и её
+  // id остаются для целостности истории сделок/отзывов других пользователей.
+  @Column({ default: false })
+  isDeleted: boolean;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

@@ -70,7 +70,7 @@ export class UsersController {
   @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMe(@CurrentUser() currentUser: JwtPayload) {
-    await this.usersService.delete(currentUser.sub);
+    await this.usersService.anonymize(currentUser.sub);
   }
 
   @Get(':id')

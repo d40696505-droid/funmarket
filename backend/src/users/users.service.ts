@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Repository } from 'typeorm';
 import { CITIES } from '../services/cities';
 import type { UpdateProfileDto } from './dto/update-profile.dto';
@@ -10,6 +11,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   findByEmail(email: string): Promise<User | null> {
@@ -98,10 +100,32 @@ export class UsersService {
     return this.update(id, { city: null, cityPendingModeration: false });
   }
 
-  // Хард-делит достаточен, пока на user_id ничего не ссылается.
-  // Когда появятся bookings/reviews (Фаза 3+), заменить на анонимизацию,
-  // чтобы не терять историю сделок по внешним ключам.
-  async delete(id: string): Promise<void> {
-    await this.usersRepository.delete(id);
+  // Настоящий DELETE упал бы на внешних ключах (bookings.buyerId/sellerId —
+  // ON DELETE RESTRICT), а там, где каскад всё же разрешён (reviews, chats,
+  // messages), удалил бы данные, наполовину принадлежащие другому
+  // участнику сделки/переписки. Поэтому — анонимизация: строка и id
+  // остаются, персональные поля стираются, повторный вход блокируется.
+  async anonymize(id: string): Promise<void> {
+    await this.usersRepository.update(id, {
+      email: `deleted-${id}@hobbyhub.ru`,
+      firstName: null,
+      lastName: null,
+      avatarUrl: null,
+      phone: null,
+      brandName: null,
+      bio: null,
+      city: null,
+      cityPendingModeration: false,
+      skills: [],
+      interests: [],
+      interestsOther: null,
+      isDeleted: true,
+      refreshTokenHash: null,
+    });
+    // Слушает services.service.ts — снимает с публикации активные услуги
+    // продавца (не тянем ServicesService сюда напрямую, чтобы не заводить
+    // циклическую зависимость модулей: ServicesModule уже импортирует
+    // UsersModule).
+    this.eventEmitter.emit('user.deleted', { userId: id });
   }
 }

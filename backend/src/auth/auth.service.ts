@@ -93,7 +93,11 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<AuthTokens> {
     const user = await this.usersService.findByEmailWithSecrets(dto.email);
-    if (!user || !(await bcrypt.compare(dto.password, user.passwordHash))) {
+    if (
+      !user ||
+      user.isDeleted ||
+      !(await bcrypt.compare(dto.password, user.passwordHash))
+    ) {
       throw new UnauthorizedException('Invalid email or password');
     }
     return this.issueTokens(user);

@@ -157,6 +157,10 @@ export function updateMe(
   });
 }
 
+export function deleteAccount() {
+  return request<void>("/api/users/me", { method: "DELETE" });
+}
+
 // Публичный профиль продавца/покупателя, видимый другим — без email/телефона
 // (см. backend/src/users/public-user.mapper.ts toProfileSummary).
 export interface ProfileSummary {

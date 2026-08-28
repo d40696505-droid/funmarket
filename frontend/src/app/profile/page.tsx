@@ -4,16 +4,36 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { updateMe, uploadAvatarFile, type PublicUser } from "@/lib/api";
+import { deleteAccount, updateMe, uploadAvatarFile, type PublicUser } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { CITIES } from "@/lib/cities";
 
 export default function ProfilePage() {
-  const { user, loading, setUser } = useAuth();
+  const { user, loading, setUser, logout } = useAuth();
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDeleteAccount() {
+    if (
+      !confirm(
+        "Удалить аккаунт? Это действие необратимо: вход станет невозможен, личные данные будут стёрты. История бронирований и отзывов сохранится для других пользователей.",
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteAccount();
+      logout();
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось удалить аккаунт");
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     if (!loading && !user) {
@@ -103,6 +123,17 @@ export default function ProfilePage() {
           user (например, после загрузки аватара) — иначе есть риск затереть
           несохранённый ввод пользователя */}
       <ProfileForm key={user.id} user={user} onSaved={setUser} />
+
+      <div className="mt-10 border-t border-black/10 pt-4 dark:border-white/10">
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          disabled={deleting}
+          className="text-sm text-red-600 hover:underline disabled:opacity-60"
+        >
+          {deleting ? "Удаляем…" : "Удалить аккаунт"}
+        </button>
+      </div>
     </main>
   );
 }

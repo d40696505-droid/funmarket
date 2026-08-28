@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
@@ -202,6 +203,21 @@ export class ServicesService {
     }
     service.status = ServiceStatus.ACTIVE;
     return this.servicesRepository.save(service);
+  }
+
+  // Снимает с публикации все активные услуги продавца при удалении его
+  // аккаунта (UsersService.anonymize эмитит событие) — чтобы у
+  // "удалённого" продавца не оставалось бронируемых объявлений в каталоге.
+  @OnEvent('user.deleted')
+  async handleUserDeleted(payload: { userId: string }): Promise<void> {
+    await this.deactivateAllForSeller(payload.userId);
+  }
+
+  async deactivateAllForSeller(sellerId: string): Promise<void> {
+    await this.servicesRepository.update(
+      { sellerId, status: ServiceStatus.ACTIVE },
+      { status: ServiceStatus.INACTIVE },
+    );
   }
 
   async delete(id: string, sellerId: string): Promise<void> {
