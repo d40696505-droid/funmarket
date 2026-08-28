@@ -46,6 +46,11 @@ if ! id -u "$APP_USER" >/dev/null 2>&1; then
 fi
 
 # ---------- 1. Клонирование репозитория по SSH deploy key ----------
+# Скрипт всегда запускается под root, а сам APP_DIR в конце предыдущего
+# прогона отдан во владение hobbyhub (шаг 4) — без этого git отказывается
+# работать с "чужим" репозиторием ("dubious ownership").
+git config --global --add safe.directory "$APP_DIR"
+
 if [ ! -f "$DEPLOY_KEY" ]; then
   log "генерирую SSH-ключ для доступа к репозиторию"
   ssh-keygen -t ed25519 -N "" -f "$DEPLOY_KEY" -C "hobbyhub-deploy" >/dev/null
