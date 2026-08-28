@@ -91,6 +91,10 @@ export default function LoginPage() {
 
           {error && <p className="text-sm text-red-200">{error}</p>}
 
+          <Link href="/forgot-password" className="self-end text-xs text-white/70 hover:underline">
+            Забыли пароль?
+          </Link>
+
           <button type="submit" disabled={submitting} className="btn-primary mt-2 w-full">
             {submitting ? "Входим…" : "Войти"}
           </button>

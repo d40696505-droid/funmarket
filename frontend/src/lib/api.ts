@@ -114,6 +114,26 @@ export function getMe() {
   return request<PublicUser>("/api/users/me");
 }
 
+export function forgotPassword(email: string) {
+  return request<{ message: string }>("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(token: string, newPassword: string) {
+  return request<{ message: string }>("/api/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, newPassword }),
+  });
+}
+
+export function verifyEmail(token: string) {
+  return request<{ message: string }>(
+    `/api/auth/verify-email/${encodeURIComponent(token)}`,
+  );
+}
+
 export function updateMe(
   data: Partial<
     Pick<
