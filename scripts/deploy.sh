@@ -196,7 +196,11 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable --now hobbyhub-backend hobbyhub-frontend
+systemctl enable hobbyhub-backend hobbyhub-frontend
+# restart, не enable --now: на повторном запуске сервисы уже могут быть
+# активны, а enable --now не перечитывает свежую сборку у уже запущенного
+# юнита — без явного restart новый код просто не подхватится.
+systemctl restart hobbyhub-backend hobbyhub-frontend
 
 # ---------- 6. Caddyfile ----------
 CADDYFILE=/etc/caddy/Caddyfile
