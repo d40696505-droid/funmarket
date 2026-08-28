@@ -50,7 +50,16 @@ export default function ProfilePage() {
   return (
     <main className="mx-auto w-full max-w-sm flex-1 px-4 py-10">
       <h1 className="mb-1 text-2xl font-semibold">Профиль</h1>
-      <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">{user.email}</p>
+      <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">{user.email}</p>
+      <div className="mb-6">
+        {!user.isEmailVerified && (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+            Email не подтверждён. Мы отправили письмо со ссылкой на {user.email}{" "}
+            при регистрации — если не пришло, проверьте папку «Спам» или
+            напишите в поддержку через кнопку «Написать нам».
+          </p>
+        )}
+      </div>
 
       {(user.role === "seller" || user.role === "both") && (
         <Link
