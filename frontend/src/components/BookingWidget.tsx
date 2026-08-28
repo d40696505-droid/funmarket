@@ -102,6 +102,18 @@ export function BookingWidget({
     }
   }
 
+  if (process.env.NEXT_PUBLIC_ORDERS_DISABLED === "true") {
+    return (
+      <div className="card flex flex-col gap-1 p-4">
+        <p className="font-medium">Сайт в разработке</p>
+        <p className="text-sm text-zinc-500">
+          Оформление бронирования временно недоступно — мы ещё дорабатываем сервис.
+          Загляните позже.
+        </p>
+      </div>
+    );
+  }
+
   if (user && user.id === service.sellerId) {
     return null;
   }

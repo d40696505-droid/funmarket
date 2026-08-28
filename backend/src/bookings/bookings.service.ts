@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
@@ -93,6 +94,16 @@ export class BookingsService {
   }
 
   async create(buyerId: string, dto: CreateBookingDto): Promise<Booking> {
+    // Временная заглушка на период публичного тестирования без реального
+    // платёжного провайдера (см. docs/release-plan.md, блокер №2) — сайт
+    // остаётся доступен для просмотра/регистрации, только оформление брони
+    // выключено. Снимается одной переменной окружения, без правок кода.
+    if (this.configService.get<string>('ORDERS_DISABLED') === 'true') {
+      throw new ServiceUnavailableException(
+        'Сайт в разработке: оформление бронирования временно недоступно',
+      );
+    }
+
     const service = await this.servicesRepository.findOne({
       where: { id: dto.serviceId, status: ServiceStatus.ACTIVE },
       relations: { seller: true },
