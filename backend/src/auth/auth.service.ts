@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -36,6 +37,8 @@ export interface AuthTokens {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -74,7 +77,16 @@ export class AuthService {
       ),
     });
 
-    await this.mailService.sendEmailVerification(user.email, verificationToken);
+    // Сбой доставки письма не должен ломать регистрацию аккаунта — только
+    // само письмо. Пользователь сможет запросить подтверждение повторно.
+    try {
+      await this.mailService.sendEmailVerification(user.email, verificationToken);
+    } catch (err) {
+      this.logger.error(
+        `Не удалось отправить письмо подтверждения на ${user.email}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+    }
 
     return this.issueTokens(user);
   }
@@ -141,7 +153,14 @@ export class AuthService {
           Date.now() + PASSWORD_RESET_TTL_MS,
         ),
       });
-      await this.mailService.sendPasswordReset(user.email, token);
+      try {
+        await this.mailService.sendPasswordReset(user.email, token);
+      } catch (err) {
+        this.logger.error(
+          `Не удалось отправить письмо сброса пароля на ${user.email}`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      }
     }
     // Ответ одинаков независимо от существования email — не даём
     // перечислять зарегистрированные адреса.
