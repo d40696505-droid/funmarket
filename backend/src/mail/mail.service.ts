@@ -33,6 +33,10 @@ export class MailService {
     const password = this.configService.get<string>('SMTP_PASSWORD');
     this.from = this.configService.get<string>('MAIL_FROM', user ?? '');
 
+    this.logger.log(
+      `SMTP config at startup: host=${host || 'MISSING'} port=${port || 'MISSING'} user=${user || 'MISSING'} password=${password ? 'set (' + password.length + ' chars)' : 'MISSING'}`,
+    );
+
     if (host && port && user && password) {
       this.transporter = createTransport({
         host,
