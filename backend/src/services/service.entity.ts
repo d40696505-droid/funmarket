@@ -147,6 +147,10 @@ export class Service {
   @Column({ default: 0 })
   bookingsCount: number;
 
+  // Сколько раз услугу добавили в избранное — виден продавцу в «Мои услуги».
+  @Column({ default: 0 })
+  favoritesCount: number;
+
   @OneToMany(() => ServiceImage, (image) => image.service, { cascade: true })
   images: ServiceImage[];
 

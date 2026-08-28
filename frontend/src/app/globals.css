@@ -1,12 +1,27 @@
 @import "tailwindcss";
 
+/* Тёмная тема отключена намеренно (пользователь просил всегда светлый
+   сайт) — переключаем dark: с автоматического "по системной теме" на
+   классовый, а класс .dark нигде не выставляется, так что тёмные варианты
+   просто никогда не активируются, независимо от настроек ОС/браузера. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* Фирменный зелёный (тема "стекло + природа") — используется на кнопках,
-     активных состояниях и чекбоксах по всему сайту. */
-  --accent: #558b2f;
-  --accent-light: #8bc34a;
+  /* Жёлтый акцент + чёрный как второй полноценный цвет (не только текст) —
+     используется на кнопках, активных состояниях, чекбоксах, важных CTA
+     по всему сайту. Акцент светлый, поэтому текст/иконки поверх него
+     всегда тёмные (--accent-foreground), а не белые. */
+  --accent: #f5c518;
+  --accent-light: #fcd34d;
+  --accent-foreground: #171717;
+  /* Тот же жёлтый бренд-цвет, но затемнённый — для текстовых ссылок:
+     чистый --accent слишком светлый, чтобы читаться как текст на белом. */
+  --accent-dark: #a16207;
+  /* Фон карточек — на тон темнее страницы, чтобы карточки визуально
+     отделялись от белого фона (страница остаётся белой). */
+  --card-background: #f4f4f5;
 }
 
 @theme inline {
@@ -14,36 +29,17 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-dark: var(--accent-dark);
+  --color-card: var(--card-background);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background-image:
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.55)),
-    url("/auth-bg.jpg");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-
-/* Идёт после базового body{} — иначе при равной специфичности медиа-запрос
-   проигрывает обычному правилу по порядку исходного кода и тёмная тема
-   никогда не применяется (это и было причиной нечитаемых светлых
-   заголовков на светлой "дымке" в тёмном режиме). */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-
-  body {
-    background-image:
-      linear-gradient(to bottom, rgba(10, 10, 10, 0.75), rgba(10, 10, 10, 0.55)),
-      url("/auth-bg.jpg");
-  }
 }
 
 @layer components {
@@ -52,8 +48,13 @@ body {
   }
 
   .btn-primary {
-    @apply rounded-full px-5 py-2.5 text-center text-sm font-medium text-white shadow-sm transition-transform hover:scale-[1.02] hover:opacity-95 active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100;
-    background: linear-gradient(135deg, var(--accent-light), var(--accent));
+    @apply rounded-full bg-accent px-5 py-2.5 text-center text-sm font-semibold text-accent-foreground shadow-sm transition-transform hover:scale-[1.02] hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100;
+  }
+
+  /* Чёрный CTA — второй полноценный акцентный цвет наравне с жёлтым,
+     зарезервирован за входом/регистрацией в шапке (как в референсе). */
+  .btn-dark {
+    @apply rounded-full bg-zinc-900 px-5 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition-transform hover:scale-[1.02] hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100 dark:bg-white dark:text-zinc-900;
   }
 
   .btn-secondary {
@@ -61,7 +62,7 @@ body {
   }
 
   .card {
-    @apply rounded-xl border border-black/10 bg-background shadow-sm transition-shadow hover:shadow-md dark:border-white/10;
+    @apply rounded-xl border border-black/10 bg-card shadow-sm transition-shadow hover:shadow-md dark:border-white/10;
   }
 
   /* Стекло на фото природы — только для входа/регистрации (см. globals.css). */
@@ -106,20 +107,13 @@ body {
     );
   }
 
-  /* Карточка услуги в стеклянном стиле — тот же рецепт, что .hero-glass,
-     но с непрозрачной светлой базой и тёмным текстом (в отличие от хиро,
-     эти карточки стоят не на тёмной фото-подложке, а на светлой "дымке"
-     body — белый текст .hero-glass был бы на них нечитаем). Базовая
-     непрозрачность выше, чем у .hero-glass (0.82 против 0.22) — иначе
-     в тёмной теме сквозь стекло просвечивает тёмное фото и текст/бейджи
-     теряют контраст. */
+  /* Раньше — стеклянная карточка поверх фото-фона body; теперь body снова
+     сплошной цвет (см. правку палитры), поэтому у карточек услуг тот же
+     непрозрачный вид, что и у .card. Класс оставлен отдельным (не заменён
+     на .card везде), чтобы не трогать разметку компонентов, которые его
+     используют. */
   .card-glass {
-    @apply rounded-xl border border-white/40 shadow-sm backdrop-blur-xl transition-shadow hover:shadow-md;
-    background: linear-gradient(
-      160deg,
-      rgba(255, 255, 255, 0.82),
-      rgba(160, 190, 140, 0.55)
-    );
+    @apply rounded-xl border border-black/10 bg-card shadow-sm transition-shadow hover:shadow-md dark:border-white/10;
   }
 }
 

@@ -1,9 +1,14 @@
-import { IsNumberString, IsOptional } from 'class-validator';
+import { IsOptional, Matches } from 'class-validator';
 
 // Обязателен только для брони по услуге с договорной ценой (totalAmount ещё
 // не проставлен) — продавец фиксирует итоговую сумму в момент подтверждения.
+// Регекс вместо @IsNumberString(): допускает только строго положительное
+// число (с опциональной дробной частью) — отрицательные/нулевые суммы ломают
+// инвариант эскроу-баланса (SUM по бронированиям не должна уходить в минус).
 export class ConfirmBookingDto {
   @IsOptional()
-  @IsNumberString()
+  @Matches(/^(?!0*\.?0*$)\d+(\.\d{1,2})?$/, {
+    message: 'fixedAmount должен быть положительным числом',
+  })
   fixedAmount?: string;
 }

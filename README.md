@@ -1,4 +1,4 @@
-# FunMarket
+# HobbyHub
 
 C2C-маркетплейс развлекательных услуг (MVP). Монорепозиторий: `backend`
 (NestJS) + `frontend` (Next.js).

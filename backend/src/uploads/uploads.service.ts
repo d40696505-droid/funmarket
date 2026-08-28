@@ -21,7 +21,7 @@ export class UploadsService {
   private readonly publicUrl: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.bucket = this.configService.get<string>('S3_BUCKET', 'funmarket');
+    this.bucket = this.configService.get<string>('S3_BUCKET', 'hobbyhub');
     this.publicUrl = this.configService
       .get<string>('S3_PUBLIC_URL', '')
       .replace(/\/$/, '');
@@ -82,7 +82,7 @@ export class UploadsService {
       Key: key,
       Conditions: [
         ['content-length-range', 0, MAX_FILE_SIZE_BYTES],
-        ['starts-with', '$Content-Type', 'image/'],
+        ['eq', '$Content-Type', contentType],
       ],
       Fields: { 'Content-Type': contentType },
       Expires: PRESIGNED_URL_TTL_SECONDS,

@@ -63,12 +63,12 @@ export function ServiceDetailClient({ service }: { service: Service }) {
           <div
             className="relative mb-6 flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-xl"
             style={{
-              background: "linear-gradient(160deg, rgba(139,195,74,0.18), rgba(139,195,74,0.32))",
+              background: "linear-gradient(160deg, rgba(245,197,24,0.15), rgba(245,197,24,0.28))",
             }}
           >
             <svg
               viewBox="0 0 24 24"
-              className="h-14 w-14 text-accent/50"
+              className="h-14 w-14 text-accent-dark/60"
               fill="none"
               stroke="currentColor"
               strokeWidth={1.5}
@@ -202,10 +202,17 @@ export function ServiceDetailClient({ service }: { service: Service }) {
                   </span>
                 )}
               </div>
-              <p className="text-sm text-zinc-500">
-                {Number(service.seller.rating) > 0
-                  ? `★ ${Number(service.seller.rating).toFixed(1)} · `
-                  : ""}
+              <p className="flex items-center gap-1 text-sm text-zinc-500">
+                {service.seller.reviewsCount > 0 && (
+                  <>
+                    <span className="text-accent">★</span>
+                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {Number(service.seller.rating).toFixed(1)}
+                    </span>
+                    <span>({service.seller.reviewsCount})</span>
+                    <span>·</span>
+                  </>
+                )}
                 {service.seller.city}
               </p>
               {service.seller.skills && service.seller.skills.length > 0 && (

@@ -46,6 +46,7 @@ export interface ServiceMapMarker {
   priceType: string;
   categoryName: string;
   sellerRating: number;
+  sellerReviewsCount: number;
   previewUrl: string | null;
   lat: number;
   lng: number;
@@ -315,6 +316,7 @@ export class ServicesService {
       .addSelect('service.priceType', 'priceType')
       .addSelect('category.name', 'categoryName')
       .addSelect('seller.rating', 'sellerRating')
+      .addSelect('seller.reviewsCount', 'sellerReviewsCount')
       .addSelect('ST_Y(service."locationPoint"::geometry)', 'lat')
       .addSelect('ST_X(service."locationPoint"::geometry)', 'lng')
       .addSelect(
@@ -330,6 +332,7 @@ export class ServicesService {
       priceType: string;
       categoryName: string;
       sellerRating: string;
+      sellerReviewsCount: string;
       previewUrl: string | null;
       lat: string;
       lng: string;
@@ -342,6 +345,7 @@ export class ServicesService {
       priceType: row.priceType,
       categoryName: row.categoryName,
       sellerRating: Number(row.sellerRating),
+      sellerReviewsCount: Number(row.sellerReviewsCount),
       previewUrl: row.previewUrl,
       lat: Number(row.lat),
       lng: Number(row.lng),

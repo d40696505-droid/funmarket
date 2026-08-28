@@ -83,8 +83,18 @@ export function SellerProfileClient({
             )}
           </div>
 
-          <p className="mt-1 text-sm text-zinc-500">
-            {Number(profile.rating) > 0 ? `★ ${Number(profile.rating).toFixed(1)}` : "Пока нет отзывов"}
+          <p className="mt-1 flex items-center gap-1 text-sm text-zinc-500">
+            {profile.reviewsCount > 0 ? (
+              <>
+                <span className="text-accent">★</span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {Number(profile.rating).toFixed(1)}
+                </span>
+                <span>({profile.reviewsCount})</span>
+              </>
+            ) : (
+              "Пока нет отзывов"
+            )}
             {profile.city ? ` · ${profile.city}` : ""}
           </p>
 

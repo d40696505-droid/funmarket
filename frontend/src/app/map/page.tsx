@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ServiceMap } from "@/components/ServiceMap";
 import {
   getCategories,
@@ -10,6 +10,9 @@ import {
   type Category,
   type ServiceMapMarker,
 } from "@/lib/api";
+import { haversineDistanceKm } from "@/lib/geo";
+
+const VISIBLE_COUNT = 5;
 
 function formatPrice(marker: ServiceMapMarker): string {
   if (marker.priceType === "negotiable" || marker.priceMin == null) {
@@ -32,6 +35,42 @@ export default function MapPage() {
     x: number;
     y: number;
   } | null>(null);
+  // Тихий запрос геолокации при открытии страницы — если разрешат,
+  // список слева сортируется по расстоянию; если нет/откажут — список
+  // остаётся как есть, без сортировки и сворачивания.
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+    );
+  }, []);
+
+  const sortedMarkers = useMemo(() => {
+    if (!userPos) return markers;
+    return [...markers].sort(
+      (a, b) =>
+        haversineDistanceKm(userPos.lat, userPos.lng, a.lat, a.lng) -
+        haversineDistanceKm(userPos.lat, userPos.lng, b.lat, b.lng),
+    );
+  }, [markers, userPos]);
+
+  const visibleMarkers =
+    userPos && !expanded ? sortedMarkers.slice(0, VISIBLE_COUNT) : sortedMarkers;
+  const hiddenMarkers = userPos && !expanded ? sortedMarkers.slice(VISIBLE_COUNT) : [];
+  const maxHiddenDistanceKm =
+    hiddenMarkers.length > 0
+      ? Math.ceil(
+          Math.max(
+            ...hiddenMarkers.map((m) =>
+              haversineDistanceKm(userPos!.lat, userPos!.lng, m.lat, m.lng),
+            ),
+          ),
+        )
+      : 0;
 
   // useCallback — стабильная ссылка, иначе ServiceMap пересобирал бы всю
   // карту (эффект зависит от onMarkerHover) при каждом наведении.
@@ -61,6 +100,7 @@ export default function MapPage() {
       .then((data) => {
         setMarkers(data);
         setSelected(null);
+        setExpanded(false);
       })
       .catch((err) => setLoadError(err instanceof Error ? err.message : "Не удалось загрузить услуги"));
   }, [categoryId]);
@@ -101,9 +141,15 @@ export default function MapPage() {
               <h3 className="line-clamp-2 font-medium leading-snug">{selected.title}</h3>
               <div className="flex items-center justify-between text-sm">
                 <span className="font-semibold">{formatPrice(selected)}</span>
-                <span className="rounded-full bg-black/5 px-2 py-0.5 text-xs text-zinc-600 dark:bg-white/10 dark:text-zinc-400">
-                  ★ {selected.sellerRating.toFixed(1)}
-                </span>
+                {selected.sellerReviewsCount > 0 && (
+                  <span className="flex items-center gap-1 rounded-full bg-black/5 px-2 py-0.5 text-xs dark:bg-white/10">
+                    <span className="text-accent">★</span>
+                    <span className="font-medium">{selected.sellerRating.toFixed(1)}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">
+                      ({selected.sellerReviewsCount})
+                    </span>
+                  </span>
+                )}
               </div>
             </div>
           </Link>
@@ -114,7 +160,7 @@ export default function MapPage() {
         )}
 
         <ul className="flex flex-col gap-1 overflow-y-auto lg:max-h-[calc(100vh-260px)]">
-          {markers.map((marker) => (
+          {visibleMarkers.map((marker) => (
             <li key={marker.id}>
               <button
                 type="button"
@@ -131,6 +177,16 @@ export default function MapPage() {
             </li>
           ))}
         </ul>
+
+        {hiddenMarkers.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="rounded-lg px-2 py-1.5 text-left text-sm text-accent-dark hover:underline"
+          >
+            Ещё {hiddenMarkers.length} в пределах {maxHiddenDistanceKm} км от вас
+          </button>
+        )}
       </aside>
 
       <ServiceMap
@@ -138,6 +194,7 @@ export default function MapPage() {
         onMarkerClick={setSelected}
         highlightedId={hoveredId}
         onMarkerHover={handleMarkerHover}
+        focusedId={selected?.id ?? null}
         className="min-h-[400px] flex-1"
       />
 
@@ -158,10 +215,10 @@ export default function MapPage() {
             )}
           </div>
           <div className="flex min-w-0 flex-col justify-center gap-0.5">
-            <span className="line-clamp-2 text-sm leading-snug font-medium text-zinc-900">
+            <span className="line-clamp-2 text-sm leading-snug font-medium">
               {hoverPreview.marker.title}
             </span>
-            <span className="text-xs text-zinc-600">{formatPrice(hoverPreview.marker)}</span>
+            <span className="text-xs text-zinc-600 dark:text-zinc-400">{formatPrice(hoverPreview.marker)}</span>
           </div>
         </div>
       )}

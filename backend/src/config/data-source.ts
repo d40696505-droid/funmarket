@@ -21,9 +21,9 @@ export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST ?? 'localhost',
   port: Number(process.env.DB_PORT ?? 5432),
-  username: process.env.DB_USER ?? 'funmarket',
-  password: process.env.DB_PASSWORD ?? 'funmarket',
-  database: process.env.DB_NAME ?? 'funmarket',
+  username: process.env.DB_USER ?? 'hobbyhub',
+  password: process.env.DB_PASSWORD ?? 'hobbyhub',
+  database: process.env.DB_NAME ?? 'hobbyhub',
   entities: [
     User,
     Category,

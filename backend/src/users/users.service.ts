@@ -27,6 +27,10 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
+  findSupportContact(): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { isSupport: true } });
+  }
+
   findByIdWithSecrets(id: string): Promise<User | null> {
     return this.usersRepository
       .createQueryBuilder('user')

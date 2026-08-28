@@ -17,6 +17,7 @@ export function ServiceMap({
   onMarkerClick,
   highlightedId,
   onMarkerHover,
+  focusedId,
 }: {
   markers: ServiceMapMarker[];
   className?: string;
@@ -28,6 +29,8 @@ export function ServiceMap({
   // Наведение на сам маркер — координаты курсора нужны, чтобы показать
   // превью-карточку рядом с ним (position: fixed на стороне вызывающего).
   onMarkerHover?: (marker: ServiceMapMarker | null, position: { x: number; y: number } | null) => void;
+  // id услуги, к которой нужно перелистнуть карту (клик по строке списка).
+  focusedId?: string | null;
 }) {
   const { ready, error: mapError } = useYandexMaps();
   const router = useRouter();
@@ -103,6 +106,15 @@ export function ServiceMap({
       placemark.options.set("preset", id === highlightedId ? HIGHLIGHT_PRESET : DEFAULT_PRESET);
     }
   }, [highlightedId]);
+
+  // Клик по строке списка — перелистываем карту к точке услуги.
+  useEffect(() => {
+    if (!focusedId || !mapInstanceRef.current) return;
+    const marker = markers.find((m) => m.id === focusedId);
+    if (marker) {
+      mapInstanceRef.current.setCenter([marker.lat, marker.lng], 15);
+    }
+  }, [focusedId, markers]);
 
   return (
     <div className={className}>

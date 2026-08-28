@@ -22,18 +22,39 @@ export function CatalogClient() {
   const [loading, setLoading] = useState(true);
   const [geoError, setGeoError] = useState<string | null>(null);
 
-  // Ленивые инициализаторы — подхватывают ?q=/?categoryId=/?city= из ссылки
-  // (например, из поиска и выбора города в шапке или карусели категорий на
-  // главной), дальше это обычный локальный стейт.
-  const [q, setQ] = useState(() => searchParams.get("q") ?? "");
-  const [categoryId, setCategoryId] = useState(() => searchParams.get("categoryId") ?? "");
+  const [q, setQ] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [city, setCity] = useState(() => searchParams.get("city") ?? "");
+  const [city, setCity] = useState("");
   const [sortBy, setSortBy] = useState<SearchServicesParams["sortBy"]>("newest");
   const [near, setNear] = useState<{ lat: number; lng: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(10);
   const [page, setPage] = useState(1);
+
+  // Подхватывает ?q=/?categoryId=/?city=/?lat=&lng=&radiusKm= из ссылки
+  // (поиск и город в шапке, «рядом со мной», карусели категорий на
+  // главной) — не в useEffect (React-паттерн "adjusting state when a prop
+  // changes", react.dev), а прямо в теле рендера под сравнением с
+  // последним увиденным searchParams. На одном lazy useState-инициализаторе
+  // это ломалось: переход на /catalog?city=X, уже находясь на /catalog, не
+  // перемонтирует компонент, и инициализатор второй раз не выполняется —
+  // фильтр молча оставался старым.
+  const [lastParams, setLastParams] = useState(searchParams.toString());
+  if (searchParams.toString() !== lastParams) {
+    setLastParams(searchParams.toString());
+    setQ(searchParams.get("q") ?? "");
+    setCategoryId(searchParams.get("categoryId") ?? "");
+    setCity(searchParams.get("city") ?? "");
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    if (lat && lng) {
+      setNear({ lat: Number(lat), lng: Number(lng) });
+      const radius = searchParams.get("radiusKm");
+      if (radius) setRadiusKm(Number(radius));
+    }
+    setPage(1);
+  }
 
   useEffect(() => {
     getCategories()

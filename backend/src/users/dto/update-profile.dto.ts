@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEnum,
   IsOptional,
+  IsPhoneNumber,
   IsString,
   IsUrl,
   MaxLength,
@@ -21,7 +22,9 @@ export class UpdateProfileDto {
   lastName?: string;
 
   @IsOptional()
-  @IsString()
+  @IsPhoneNumber('RU', {
+    message: 'Введите номер телефона в формате +7 900 123-45-67',
+  })
   phone?: string;
 
   @IsOptional()

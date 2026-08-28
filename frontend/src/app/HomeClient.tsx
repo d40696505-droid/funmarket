@@ -71,7 +71,7 @@ export function HomeClient({
                 : "Найдите мастера поблизости"}
             </span>
           </div>
-          <span className="mr-5 hidden shrink-0 text-accent group-hover:underline sm:inline">
+          <span className="mr-5 hidden shrink-0 text-accent-dark group-hover:underline sm:inline">
             Открыть карту →
           </span>
         </Link>

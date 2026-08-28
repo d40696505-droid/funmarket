@@ -107,14 +107,16 @@ export class ReviewsService {
   }
 
   private async recalculateRating(sellerId: string): Promise<void> {
-    const { avg } = (await this.reviewsRepository
+    const { avg, count } = (await this.reviewsRepository
       .createQueryBuilder('review')
       .select('AVG(review.rating)', 'avg')
+      .addSelect('COUNT(*)', 'count')
       .where('review.targetId = :sellerId', { sellerId })
-      .getRawOne()) as { avg: string };
+      .getRawOne()) as { avg: string; count: string };
 
     await this.usersService.update(sellerId, {
       rating: Number(Number(avg).toFixed(2)),
+      reviewsCount: Number(count),
     });
   }
 }

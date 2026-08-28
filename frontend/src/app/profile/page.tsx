@@ -54,7 +54,7 @@ export default function ProfilePage() {
       {(user.role === "seller" || user.role === "both") && (
         <Link
           href="/profile/balance"
-          className="mb-6 -mt-2 inline-block text-sm text-accent hover:underline"
+          className="mb-6 -mt-2 inline-block text-sm text-accent-dark hover:underline"
         >
           Баланс и выплаты →
         </Link>

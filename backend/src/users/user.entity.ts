@@ -87,6 +87,9 @@ export class User {
   @Column({ type: 'numeric', precision: 3, scale: 2, default: 0 })
   rating: number;
 
+  @Column({ default: 0 })
+  reviewsCount: number;
+
   @Column({ default: false })
   isEmailVerified: boolean;
 
@@ -96,6 +99,13 @@ export class User {
   // Администратор платформы (раздел 3.4 ТЗ) — сотрудник, не роль покупатель/продавец.
   @Column({ default: false })
   isAdmin: boolean;
+
+  // Аккаунт техподдержки — пользователи пишут ему через обычный чат
+  // (GET /api/support/contact отдаёт id этого пользователя). Выставляется
+  // напрямую в БД, тем же способом, что и isAdmin для первого админа —
+  // отдельной админ-панели управления пользователями в проекте нет.
+  @Column({ default: false })
+  isSupport: boolean;
 
   // Верификация продавца перед первым выводом средств (amendment #4) —
   // не блокирует публикацию услуг, гейтит только релиз эскроу.

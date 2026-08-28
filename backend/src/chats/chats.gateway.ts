@@ -72,11 +72,20 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('chat:join')
-  handleJoinChat(
+  async handleJoinChat(
     @ConnectedSocket() socket: AuthedSocket,
     @MessageBody() data: { chatId: string },
-  ): void {
-    void socket.join(chatRoom(data.chatId));
+  ): Promise<void> {
+    try {
+      await this.chatsService.getChatForParticipant(
+        data.chatId,
+        socket.data.userId,
+      );
+    } catch {
+      socket.emit('message:error', { message: 'Нет доступа к этому чату' });
+      return;
+    }
+    await socket.join(chatRoom(data.chatId));
   }
 
   @SubscribeMessage('chat:leave')

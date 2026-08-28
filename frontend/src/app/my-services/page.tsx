@@ -107,7 +107,8 @@ export default function MyServicesPage() {
                   </span>
                 </div>
                 <p className="text-sm text-zinc-500">
-                  {service.viewsCount} просмотров · {service.bookingsCount} бронирований
+                  {service.viewsCount} просмотров · {service.bookingsCount} бронирований ·{" "}
+                  {service.favoritesCount} в избранном
                 </p>
                 {service.status === "draft" && service.moderationComment && (
                   <p className="mt-1 text-sm text-red-600">

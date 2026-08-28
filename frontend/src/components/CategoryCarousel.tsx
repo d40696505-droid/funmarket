@@ -9,7 +9,7 @@ export function CategoryCarousel({ category, services }: CategoryCarouselData) {
         <h2 className="text-lg font-semibold">{category.name}</h2>
         <Link
           href={`/catalog?categoryId=${category.id}`}
-          className="text-sm text-accent hover:underline"
+          className="text-sm text-accent-dark hover:underline"
         >
           Все →
         </Link>

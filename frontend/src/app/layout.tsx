@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ChatWidget } from "@/components/ChatWidget";
 import { Header } from "@/components/Header";
 import { AuthProvider } from "@/lib/auth-context";
 import { FavoritesProvider } from "@/lib/favorites-context";
@@ -20,12 +21,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3002";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "FunMarket",
-    template: "%s | FunMarket",
+    default: "HobbyHub",
+    template: "%s | HobbyHub",
   },
   description: "C2C-маркетплейс развлекательных услуг",
   openGraph: {
-    siteName: "FunMarket",
+    siteName: "HobbyHub",
     type: "website",
     locale: "ru_RU",
   },
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <FavoritesProvider>
             <Header />
             {children}
+            <ChatWidget />
           </FavoritesProvider>
         </AuthProvider>
       </body>

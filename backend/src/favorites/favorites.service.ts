@@ -25,9 +25,17 @@ export class FavoritesService {
     }
 
     try {
-      return await this.favoritesRepository.save(
+      const created = await this.favoritesRepository.save(
         this.favoritesRepository.create({ userId, serviceId }),
       );
+      // Счётчик двигаем только при реальном первом добавлении — иначе
+      // повторный (идемпотентный) вызов ниже задвоил бы его.
+      await this.servicesRepository.increment(
+        { id: serviceId },
+        'favoritesCount',
+        1,
+      );
+      return created;
     } catch (err) {
       // Повторное добавление в избранное — идемпотентно, не ошибка
       // (правка №5 в bookings.service.ts — тот же приём для partial index).
@@ -45,7 +53,14 @@ export class FavoritesService {
   }
 
   async remove(userId: string, serviceId: string): Promise<void> {
-    await this.favoritesRepository.delete({ userId, serviceId });
+    const result = await this.favoritesRepository.delete({ userId, serviceId });
+    if (result.affected) {
+      await this.servicesRepository.decrement(
+        { id: serviceId },
+        'favoritesCount',
+        1,
+      );
+    }
   }
 
   async findIds(userId: string): Promise<string[]> {

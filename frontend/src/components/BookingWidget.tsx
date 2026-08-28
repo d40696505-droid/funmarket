@@ -150,10 +150,9 @@ export function BookingWidget({
 
       {isRequestMode ? (
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-zinc-600 dark:text-zinc-400">Желаемое время (ЧЧ:ММ)</span>
+          <span className="text-zinc-600 dark:text-zinc-400">Желаемое время</span>
           <input
-            type="text"
-            placeholder="14:00"
+            type="time"
             value={requestTime}
             onChange={(e) => setRequestTime(e.target.value)}
             required

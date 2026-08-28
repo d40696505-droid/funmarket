@@ -173,7 +173,7 @@ export default function AdminPage() {
                   <p className="text-sm text-zinc-500">{seller.email}</p>
                   <p className="mt-1 text-sm">
                     {seller.isSellerVerified ? (
-                      <span className="text-accent">Верифицирован</span>
+                      <span className="text-accent-dark">Верифицирован</span>
                     ) : (
                       <span className="text-zinc-500">Не верифицирован</span>
                     )}

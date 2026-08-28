@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import type { MouseEvent } from "react";
-import type { Service } from "@/lib/api";
+import { useState, type MouseEvent } from "react";
+import { createChat, type Service } from "@/lib/api";
+import { AuthRequiredModal } from "@/components/AuthRequiredModal";
 import { useAuth } from "@/lib/auth-context";
 import { useFavorites } from "@/lib/favorites-context";
 
@@ -18,17 +19,16 @@ function formatPrice(service: Service): string {
   return `от ${Number(service.priceMin).toLocaleString("ru-RU")} ₽${unit}`;
 }
 
-// Карточка услуги всегда в стеклянном стиле (.card-glass) — светлый
-// полупрозрачный фон, не завязанный на тему light/dark, поэтому весь
-// текст внутри карточки задаётся явно тёмным (не через --foreground,
-// который в тёмной теме уходит в белый и станет невидимым на светлом стекле).
 export function ServiceCard({ service }: { service: Service }) {
   const cover = service.images[0]?.url;
   const { user } = useAuth();
   const { ids, toggle } = useFavorites();
   const router = useRouter();
+  const [messaging, setMessaging] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const isFavorited = ids.has(service.id);
-  const showFavorite = !!user && user.id !== service.sellerId;
+  const isOwnService = !!user && user.id === service.sellerId;
+  const showFavorite = !!user && !isOwnService;
 
   function handleToggleFavorite(e: MouseEvent) {
     e.preventDefault();
@@ -43,7 +43,31 @@ export function ServiceCard({ service }: { service: Service }) {
     router.push(`/sellers/${service.sellerId}`);
   }
 
+  // «Написать» и «Позвонить» ведут в чат с продавцом — номер телефона
+  // нигде публично не раскрывается (см. toProfileSummary), поэтому это
+  // единственный способ связаться, который у нас есть для обеих иконок.
+  async function handleContactClick(e: MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isOwnService) return;
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
+    setMessaging(true);
+    try {
+      const chat = await createChat(service.sellerId);
+      router.push(`/chats/${chat.id}`);
+    } catch {
+      // Карточка в сетке — не место для развёрнутой ошибки; молча не
+      // переходим, продавец останется доступен через страницу услуги.
+    } finally {
+      setMessaging(false);
+    }
+  }
+
   return (
+    <>
     <Link
       href={`/services/${service.id}`}
       className="card-glass flex flex-col overflow-hidden hover:border-accent/50"
@@ -56,12 +80,12 @@ export function ServiceCard({ service }: { service: Service }) {
             className="flex h-full w-full items-center justify-center"
             style={{
               background:
-                "linear-gradient(160deg, rgba(139,195,74,0.18), rgba(139,195,74,0.32))",
+                "linear-gradient(160deg, rgba(245,197,24,0.15), rgba(245,197,24,0.28))",
             }}
           >
             <svg
               viewBox="0 0 24 24"
-              className="h-10 w-10 text-accent/50"
+              className="h-10 w-10 text-accent-dark/60"
               fill="none"
               stroke="currentColor"
               strokeWidth={1.5}
@@ -95,18 +119,16 @@ export function ServiceCard({ service }: { service: Service }) {
           </button>
         )}
       </div>
-      <div className="flex flex-col gap-1.5 p-3.5 text-zinc-900">
-        <span className="text-xs text-zinc-600">{service.category?.name}</span>
-        <h3 className="line-clamp-2 min-h-11 font-medium leading-snug text-zinc-900">
-          {service.title}
-        </h3>
+      <div className="flex flex-col gap-1.5 p-3.5">
+        <span className="text-xs text-zinc-600 dark:text-zinc-400">{service.category?.name}</span>
+        <h3 className="line-clamp-2 min-h-11 font-medium leading-snug">{service.title}</h3>
         {service.seller && (
           <button
             type="button"
             onClick={handleSellerClick}
-            className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-accent"
+            className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-accent-dark dark:text-zinc-400"
           >
-            <div className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-white">
+            <div className="h-5 w-5 shrink-0 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
               {service.seller.avatarUrl && (
                 <Image
                   src={service.seller.avatarUrl}
@@ -127,14 +149,64 @@ export function ServiceCard({ service }: { service: Service }) {
           </button>
         )}
         <div className="mt-1 flex min-h-10 flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm">
-          <span className="font-semibold text-zinc-900">{formatPrice(service)}</span>
-          {service.seller && Number(service.seller.rating) > 0 && (
-            <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs font-medium text-zinc-700 shadow-sm">
-              ★ {Number(service.seller.rating).toFixed(1)}
+          <span className="font-semibold">{formatPrice(service)}</span>
+          {service.seller && Number(service.seller.reviewsCount) > 0 && (
+            <span className="flex shrink-0 items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
+              <span className="text-accent">★</span>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {Number(service.seller.rating).toFixed(1)}
+              </span>
+              <span>({service.seller.reviewsCount})</span>
             </span>
           )}
         </div>
+
+        {!isOwnService && (
+          <div className="mt-1 flex items-center gap-2 border-t border-black/10 pt-2.5 dark:border-white/10">
+            <button
+              type="button"
+              onClick={handleContactClick}
+              disabled={messaging}
+              aria-label="Написать продавцу"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-zinc-600 transition-colors hover:bg-black/[.04] disabled:opacity-50 dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/[.08]"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleContactClick}
+              disabled={messaging}
+              aria-label="Позвонить продавцу"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-zinc-600 transition-colors hover:bg-black/[.04] disabled:opacity-50 dark:border-white/10 dark:text-zinc-400 dark:hover:bg-white/[.08]"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 5.5c0-1.1.9-2 2-2h2.2c.5 0 1 .4 1.1.9l.9 3.5c.1.4 0 .9-.3 1.2l-1.5 1.5a13 13 0 0 0 5.8 5.8l1.5-1.5c.3-.3.8-.4 1.2-.3l3.5.9c.5.1.9.6.9 1.1V19c0 1.1-.9 2-2 2h-1C9.4 21 3 14.6 3 6.5v-1z"
+                />
+              </svg>
+            </button>
+            <span
+              aria-hidden
+              className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20 6 9 17l-5-5" />
+              </svg>
+            </span>
+          </div>
+        )}
       </div>
+
     </Link>
+    {showAuthPrompt && <AuthRequiredModal onClose={() => setShowAuthPrompt(false)} />}
+    </>
   );
 }

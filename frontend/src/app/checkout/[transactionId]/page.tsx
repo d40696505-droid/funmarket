@@ -73,7 +73,7 @@ export default function CheckoutPage() {
     return (
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-10">
         <p className="text-sm text-red-600">{error}</p>
-        <Link href="/orders" className="mt-4 inline-block text-sm text-accent hover:underline">
+        <Link href="/orders" className="mt-4 inline-block text-sm text-accent-dark hover:underline">
           Вернуться к заказам
         </Link>
       </main>

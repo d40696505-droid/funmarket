@@ -11,6 +11,25 @@ const INTERESTS = ["Рыбалка", "Охота", "Путешествия", "Э
 // Российский номер: +7/8 + 10 цифр, с необязательными пробелами/скобками/дефисами.
 const RU_PHONE_PATTERN = "^(\\+7|8)[\\s-]?\\(?\\d{3}\\)?[\\s-]?\\d{3}[\\s-]?\\d{2}[\\s-]?\\d{2}$";
 
+// Маска ввода в реальном времени: буквы и лишние символы отбрасываются сразу
+// (не только при сабмите через pattern), количество цифр физически
+// ограничено 10 после кода страны — ввести неправильный формат невозможно.
+function formatRuPhone(raw: string): string {
+  let digits = raw.replace(/\D/g, "");
+  if (digits.length === 0) return "";
+  if (digits[0] === "8") digits = "7" + digits.slice(1);
+  else if (digits[0] !== "7") digits = "7" + digits;
+  digits = digits.slice(0, 11);
+
+  const rest = digits.slice(1);
+  let formatted = "+7";
+  if (rest.length > 0) formatted += " " + rest.slice(0, 3);
+  if (rest.length > 3) formatted += " " + rest.slice(3, 6);
+  if (rest.length > 6) formatted += "-" + rest.slice(6, 8);
+  if (rest.length > 8) formatted += "-" + rest.slice(8, 10);
+  return formatted;
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useAuth();
@@ -88,7 +107,7 @@ export default function RegisterPage() {
             pattern={RU_PHONE_PATTERN}
             title="Российский номер в формате +7 900 123-45-67 или 8 900 123-45-67"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(formatRuPhone(e.target.value))}
             className="glass-input"
           />
           <input
@@ -128,7 +147,7 @@ export default function RegisterPage() {
                     type="checkbox"
                     checked={interests.includes(interest)}
                     onChange={() => toggleInterest(interest)}
-                    className="accent-[#8bc34a]"
+                    className="accent-[var(--accent-light)]"
                   />
                   {interest}
                 </label>

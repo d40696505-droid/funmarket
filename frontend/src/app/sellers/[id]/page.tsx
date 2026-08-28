@@ -23,7 +23,7 @@ export async function generateMetadata({
   }
   const name =
     profile.brandName || [profile.firstName, profile.lastName].filter(Boolean).join(" ") || "Продавец";
-  return { title: `${name} — FunMarket` };
+  return { title: `${name} — HobbyHub` };
 }
 
 export default async function SellerProfilePage({

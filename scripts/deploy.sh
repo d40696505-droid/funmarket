@@ -95,7 +95,10 @@ JWT_ACCESS_TTL=15m
 JWT_REFRESH_SECRET=$(openssl rand -hex 32)
 JWT_REFRESH_TTL=30d
 
-S3_ENDPOINT=http://localhost:9000
+# Публичный домен, не localhost: presigned-загрузка фото идёт напрямую из
+# браузера пользователя в MinIO, минуя backend — localhost:9000 был бы
+# адресом с точки зрения сервера, а не браузера, поэтому загрузка не работала.
+S3_ENDPOINT=https://${DOMAIN}
 S3_REGION=us-east-1
 S3_BUCKET=hobbyhub
 S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
@@ -208,8 +211,10 @@ ${DOMAIN}, ${WWW_DOMAIN} {
         reverse_proxy localhost:3000
     }
     # Публичные файлы MinIO: бакет называется hobbyhub, поэтому путь
-    # /hobbyhub/* проксируется как есть, без переписывания.
-    handle /hobbyhub/* {
+    # /hobbyhub* проксируется как есть, без переписывания. Без слэша перед
+    # звёздочкой специально: presigned POST при загрузке файла идёт на
+    # голый /hobbyhub (корень бакета, без слэша), а не только /hobbyhub/key.
+    handle /hobbyhub* {
         reverse_proxy localhost:9000
     }
     handle {

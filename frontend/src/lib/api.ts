@@ -25,6 +25,7 @@ export interface PublicUser {
   interests: string[];
   interestsOther: string | null;
   rating: string;
+  reviewsCount: number;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   isAdmin: boolean;
@@ -149,6 +150,7 @@ export interface ProfileSummary {
   sellerType: "private" | "professional" | null;
   skills: string[];
   rating: string;
+  reviewsCount: number;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
   createdAt: string;
@@ -245,6 +247,7 @@ export interface Service {
   moderationComment: string | null;
   viewsCount: number;
   bookingsCount: number;
+  favoritesCount: number;
   images: ServiceImage[];
   createdAt: string;
   updatedAt: string;
@@ -356,6 +359,7 @@ export interface ServiceMapMarker {
   priceType: ServicePriceType;
   categoryName: string;
   sellerRating: number;
+  sellerReviewsCount: number;
   previewUrl: string | null;
   lat: number;
   lng: number;
@@ -619,6 +623,19 @@ export function createChat(participantId: string) {
     method: "POST",
     body: JSON.stringify({ participantId }),
   });
+}
+
+// ---- Техподдержка ----
+
+export interface SupportContact {
+  id: string;
+  name: string;
+}
+
+// 404, если аккаунт поддержки не настроен — вызывающий код сам решает,
+// как на это реагировать (обычно — просто не показывать пункт «Поддержка»).
+export function getSupportContact() {
+  return request<SupportContact>("/api/support/contact");
 }
 
 export function getChatMessages(chatId: string) {

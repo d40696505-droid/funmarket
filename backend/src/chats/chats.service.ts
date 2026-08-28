@@ -232,10 +232,7 @@ export class ChatsService {
     });
   }
 
-  private async getChatForParticipant(
-    chatId: string,
-    userId: string,
-  ): Promise<Chat> {
+  async getChatForParticipant(chatId: string, userId: string): Promise<Chat> {
     const chat = await this.chatsRepository.findOne({ where: { id: chatId } });
     if (!chat) {
       throw new NotFoundException('Чат не найден');

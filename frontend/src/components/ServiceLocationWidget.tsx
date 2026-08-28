@@ -20,6 +20,7 @@ export function ServiceLocationWidget({ service }: { service: Service }) {
     priceType: service.priceType,
     categoryName: service.category?.name ?? "",
     sellerRating: service.seller ? Number(service.seller.rating) : 0,
+    sellerReviewsCount: service.seller ? service.seller.reviewsCount : 0,
     previewUrl: service.images[0]?.url ?? null,
     lat,
     lng,
