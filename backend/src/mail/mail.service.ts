@@ -75,12 +75,15 @@ export class MailService {
     // backend успевал ответить). Ошибку логируем сами, наружу больше не
     // прокидываем — вызывающему коду (auth.service.ts) реагировать не на
     // что, письмо — это side effect, а не часть основного запроса.
-    this.transporter.sendMail({ from: this.from, to, subject, html }).catch((err) => {
-      this.logger.error(
-        `Не удалось отправить письмо на ${to}`,
-        err instanceof Error ? err.stack : String(err),
-      );
-    });
+    this.transporter
+      .sendMail({ from: this.from, to, subject, html })
+      .then(() => this.logger.log(`Письмо отправлено на ${to}`))
+      .catch((err) => {
+        this.logger.error(
+          `Не удалось отправить письмо на ${to}`,
+          err instanceof Error ? err.stack : String(err),
+        );
+      });
   }
 
   sendEmailVerification(email: string, token: string): Promise<void> {
