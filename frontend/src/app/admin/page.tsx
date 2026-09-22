@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -16,6 +17,27 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
+const PRICE_UNIT_LABEL: Record<Service["priceUnit"], string> = {
+  hour: "/час",
+  event: "/мероприятие",
+  person: "/чел.",
+};
+
+function formatPrice(service: Service): string {
+  if (service.priceType === "negotiable") return "По договорённости";
+  const unit = PRICE_UNIT_LABEL[service.priceUnit] ?? "";
+  if (service.priceType === "fixed") {
+    return `${Number(service.priceMin).toLocaleString("ru-RU")} ₽${unit}`;
+  }
+  return `${Number(service.priceMin).toLocaleString("ru-RU")}–${Number(service.priceMax).toLocaleString("ru-RU")} ₽${unit}`;
+}
+
+const LOCATION_TYPE_LABEL: Record<Service["locationType"], string> = {
+  address: "По адресу",
+  mobile: "Выезд к клиенту",
+  online: "Онлайн",
+};
+
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -29,6 +51,7 @@ export default function AdminPage() {
   const [cityUsersLoading, setCityUsersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [expandedServiceId, setExpandedServiceId] = useState<string | null>(null);
   const [moderationSearch, setModerationSearch] = useState("");
   const [moderationCategory, setModerationCategory] = useState("");
   const [sellersSearch, setSellersSearch] = useState("");
@@ -247,18 +270,90 @@ export default function AdminPage() {
             <p className="text-sm text-zinc-500">Ничего не найдено по фильтру</p>
           ) : (
             <ul className="flex flex-col gap-3">
-              {filteredServices.map((service) => (
+              {filteredServices.map((service) => {
+                const expanded = expandedServiceId === service.id;
+                return (
                 <li key={service.id} className="card flex flex-col gap-2 p-4">
-                  <div>
-                    <p className="font-medium">{service.title}</p>
-                    <p className="text-sm text-zinc-500">
-                      {service.seller ? sellerLabel(service.seller) : "Продавец"}
-                      {service.category && ` · ${service.category.name}`}
-                    </p>
-                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                      {service.description}
-                    </p>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedServiceId(expanded ? null : service.id)}
+                    className="flex items-start justify-between gap-2 text-left"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {service.title}
+                        {service.images.length > 0 && (
+                          <span className="ml-2 text-xs font-normal text-zinc-500">
+                            📷 {service.images.length}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-sm text-zinc-500">
+                        {service.seller ? sellerLabel(service.seller) : "Продавец"}
+                        {service.category && ` · ${service.category.name}`}
+                      </p>
+                      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        {service.description}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-zinc-400">{expanded ? "▲" : "▼"}</span>
+                  </button>
+
+                  {expanded && (
+                    <div className="mt-1 flex flex-col gap-3 border-t border-black/10 pt-3 text-sm dark:border-white/10">
+                      {service.images.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                          {service.images.map((image) => (
+                            <a
+                              key={image.id}
+                              href={image.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="relative aspect-square overflow-hidden rounded-lg bg-black/5 dark:bg-white/10"
+                            >
+                              <Image
+                                src={image.url}
+                                alt=""
+                                fill
+                                unoptimized
+                                className="object-cover"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-zinc-600 dark:text-zinc-400">
+                        <dt className="text-zinc-400">Цена</dt>
+                        <dd>{formatPrice(service)}</dd>
+                        <dt className="text-zinc-400">Формат</dt>
+                        <dd>
+                          {LOCATION_TYPE_LABEL[service.locationType]}
+                          {service.locationAddress && ` — ${service.locationAddress}`}
+                        </dd>
+                        <dt className="text-zinc-400">Город</dt>
+                        <dd>{service.city ?? "—"}</dd>
+                        <dt className="text-zinc-400">Длительность</dt>
+                        <dd>{service.durationMinutes} мин</dd>
+                        <dt className="text-zinc-400">Вместимость</dt>
+                        <dd>{service.capacity}</dd>
+                        <dt className="text-zinc-400">Email продавца</dt>
+                        <dd>{service.seller?.email ?? "—"}</dd>
+                      </dl>
+                      {service.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {service.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-black/5 px-2 py-0.5 text-xs dark:bg-white/10"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex gap-2 text-sm">
                     <button
                       onClick={() => handleApprove(service.id)}
@@ -274,7 +369,8 @@ export default function AdminPage() {
                     </button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </>

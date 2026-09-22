@@ -6,6 +6,7 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ServiceForm, type ServiceFormValues } from "@/components/ServiceForm";
 import {
+  deleteService,
   getMyServiceById,
   removeServiceImage,
   submitServiceForModeration,
@@ -25,6 +26,7 @@ export default function EditServicePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -95,6 +97,20 @@ export default function EditServicePage() {
     }
   }
 
+  async function handleDelete() {
+    if (!service) return;
+    if (!confirm("Удалить объявление? Это действие необратимо.")) return;
+    setError(null);
+    setDeleting(true);
+    try {
+      await deleteService(service.id);
+      router.push("/my-services");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось удалить");
+      setDeleting(false);
+    }
+  }
+
   if (authLoading || loading || !user) {
     return (
       <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10">
@@ -159,15 +175,25 @@ export default function EditServicePage() {
         </div>
       </section>
 
-      {(service.status === "draft" || service.status === "inactive") && (
+      <div className="mb-6 flex flex-wrap gap-2">
+        {(service.status === "draft" || service.status === "inactive") && (
+          <button
+            type="button"
+            onClick={handleSubmitForModeration}
+            className="rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+          >
+            Отправить на модерацию
+          </button>
+        )}
         <button
           type="button"
-          onClick={handleSubmitForModeration}
-          className="mb-6 rounded-full border border-black/10 px-4 py-2 text-sm hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+          onClick={handleDelete}
+          disabled={deleting}
+          className="rounded-full border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60 dark:border-red-900 dark:hover:bg-red-950"
         >
-          Отправить на модерацию
+          {deleting ? "Удаляем…" : "Удалить объявление"}
         </button>
-      )}
+      </div>
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {success && <p className="mb-4 text-sm text-green-600">Сохранено</p>}
