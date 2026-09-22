@@ -44,7 +44,40 @@ export interface AuthTokens {
 
 class ApiError extends Error {}
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+// accessToken живёт 15 минут (JWT_ACCESS_TTL) — без обновления по
+// refreshToken (30 дней) любое действие после истечения падало с 401,
+// а на следующей загрузке страницы это выглядело как внезапный выход из
+// аккаунта. Один общий promise на все параллельные 401 — иначе несколько
+// одновременных запросов пытались бы обновить токен каждый сам по себе.
+let refreshPromise: Promise<string> | null = null;
+
+async function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const storedRefreshToken = localStorage.getItem("refreshToken");
+      if (!storedRefreshToken) {
+        throw new ApiError("No refresh token");
+      }
+      const res = await fetch(`${API_URL}/api/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      });
+      if (!res.ok) {
+        clearTokens();
+        throw new ApiError("Failed to refresh token");
+      }
+      const tokens = (await res.json()) as AuthTokens;
+      storeTokens(tokens);
+      return tokens.accessToken;
+    })().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+async function request<T>(path: string, options: RequestInit = {}, isRetry = false): Promise<T> {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
@@ -72,6 +105,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ...options.headers,
     },
   });
+
+  // Не трогаем сам /api/auth/refresh (иначе зациклится) и не ретраим,
+  // если это уже повторная попытка после обновления токена.
+  if (
+    res.status === 401 &&
+    !isRetry &&
+    typeof window !== "undefined" &&
+    !path.startsWith("/api/auth/refresh") &&
+    localStorage.getItem("refreshToken")
+  ) {
+    try {
+      await refreshAccessToken();
+      return request<T>(path, options, true);
+    } catch {
+      // Refresh не удался — падаем в обычную обработку ошибки ниже,
+      // токены уже очищены внутри refreshAccessToken.
+    }
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}) as { message?: unknown });

@@ -271,6 +271,12 @@ export function ChatWidget() {
               <div className="flex-1 overflow-y-auto p-3">
                 {loadingMessages ? (
                   <p className="text-sm text-zinc-500">Загрузка…</p>
+                ) : messages.length === 0 ? (
+                  <p className="mt-4 text-center text-sm text-zinc-500">
+                    {supportContact && activeChat.otherParticipant.id === supportContact.id
+                      ? "Напишите, что случилось — мы отвечаем в этом же чате."
+                      : "Сообщений пока нет — начните переписку."}
+                  </p>
                 ) : (
                   <div className="flex flex-col gap-2">
                     {messages.map((msg) =>
