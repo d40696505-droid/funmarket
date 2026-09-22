@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import dayjs from 'dayjs';
 import { In, QueryFailedError, Repository } from 'typeorm';
 import { ScheduleService } from '../schedule/schedule.service';
+import { UsersService } from '../users/users.service';
 import {
   Service,
   ServiceBookingMode,
@@ -54,6 +55,7 @@ export class BookingsService {
     private readonly notificationsService: NotificationsService,
     private readonly chatsService: ChatsService,
     private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
   ) {
     this.paymentTimeoutMinutes = Number(
       this.configService.get(
@@ -101,6 +103,13 @@ export class BookingsService {
     if (this.configService.get<string>('ORDERS_DISABLED') === 'true') {
       throw new ServiceUnavailableException(
         'Сайт в разработке: оформление бронирования временно недоступно',
+      );
+    }
+
+    const buyer = await this.usersService.findById(buyerId);
+    if (!buyer?.isEmailVerified) {
+      throw new ForbiddenException(
+        'Подтвердите email, чтобы бронировать услуги — ссылка была отправлена при регистрации',
       );
     }
 

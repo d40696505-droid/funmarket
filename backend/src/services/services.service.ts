@@ -10,6 +10,7 @@ import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { Category } from '../categories/category.entity';
 import { GeocodingService } from '../geocoding/geocoding.service';
+import { UsersService } from '../users/users.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { SearchServicesDto, ServiceSortBy } from './dto/search-services.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
@@ -62,9 +63,17 @@ export class ServicesService {
     private readonly serviceImagesRepository: Repository<ServiceImage>,
     private readonly categoriesService: CategoriesService,
     private readonly geocodingService: GeocodingService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(sellerId: string, dto: CreateServiceDto): Promise<Service> {
+    const seller = await this.usersService.findById(sellerId);
+    if (!seller?.isEmailVerified) {
+      throw new ForbiddenException(
+        'Подтвердите email, чтобы размещать услуги — ссылка была отправлена при регистрации',
+      );
+    }
+
     const category = await this.categoriesService.findById(dto.categoryId);
     if (!category) {
       throw new BadRequestException('Категория не найдена');
