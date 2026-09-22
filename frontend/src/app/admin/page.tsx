@@ -29,6 +29,61 @@ export default function AdminPage() {
   const [cityUsersLoading, setCityUsersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [moderationSearch, setModerationSearch] = useState("");
+  const [moderationCategory, setModerationCategory] = useState("");
+  const [sellersSearch, setSellersSearch] = useState("");
+  const [sellersStatus, setSellersStatus] = useState<"all" | "verified" | "unverified">("all");
+  const [citiesSearch, setCitiesSearch] = useState("");
+
+  function sellerLabel(seller: PublicUser): string {
+    return (
+      seller.brandName ||
+      [seller.firstName, seller.lastName].filter(Boolean).join(" ") ||
+      seller.email
+    );
+  }
+
+  const moderationCategories = Array.from(
+    new Map(
+      services
+        .filter((s) => s.category)
+        .map((s) => [s.category!.id, s.category!.name]),
+    ).entries(),
+  );
+
+  const filteredServices = services.filter((service) => {
+    if (moderationCategory && service.categoryId !== moderationCategory) return false;
+    const q = moderationSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      service.title.toLowerCase().includes(q) ||
+      service.description.toLowerCase().includes(q) ||
+      (service.seller ? sellerLabel(service.seller).toLowerCase().includes(q) : false) ||
+      (service.seller?.email ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const filteredSellers = sellers.filter((seller) => {
+    if (sellersStatus === "verified" && !seller.isSellerVerified) return false;
+    if (sellersStatus === "unverified" && seller.isSellerVerified) return false;
+    const q = sellersSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      sellerLabel(seller).toLowerCase().includes(q) ||
+      seller.email.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredCityUsers = cityUsers.filter((cityUser) => {
+    const q = citiesSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      sellerLabel(cityUser).toLowerCase().includes(q) ||
+      cityUser.email.toLowerCase().includes(q) ||
+      (cityUser.city ?? "").toLowerCase().includes(q)
+    );
+  });
+
   useEffect(() => {
     if (!authLoading && (!user || !user.isAdmin)) {
       router.push("/");
@@ -159,119 +214,181 @@ export default function AdminPage() {
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-      {tab === "moderation" &&
-        (servicesLoading ? (
-          <p className="text-sm text-zinc-500">Загрузка…</p>
-        ) : services.length === 0 ? (
-          <p className="text-sm text-zinc-500">Нет услуг на модерации</p>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {services.map((service) => (
-              <li key={service.id} className="card flex flex-col gap-2 p-4">
-                <div>
-                  <p className="font-medium">{service.title}</p>
-                  <p className="text-sm text-zinc-500">
-                    {service.seller?.firstName ?? service.seller?.email ?? "Продавец"}
-                  </p>
-                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                    {service.description}
-                  </p>
-                </div>
-                <div className="flex gap-2 text-sm">
-                  <button
-                    onClick={() => handleApprove(service.id)}
-                    className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
-                  >
-                    Одобрить
-                  </button>
-                  <button
-                    onClick={() => handleReject(service.id)}
-                    className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
-                  >
-                    Отклонить
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ))}
-
-      {tab === "sellers" &&
-        (sellersLoading ? (
-          <p className="text-sm text-zinc-500">Загрузка…</p>
-        ) : sellers.length === 0 ? (
-          <p className="text-sm text-zinc-500">Нет продавцов</p>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {sellers.map((seller) => (
-              <li
-                key={seller.id}
-                className="card flex items-center justify-between gap-2 p-4"
+      {tab === "moderation" && (
+        <>
+          <div className="mb-4 flex flex-wrap gap-2">
+            <input
+              value={moderationSearch}
+              onChange={(e) => setModerationSearch(e.target.value)}
+              placeholder="Поиск: название, описание, продавец…"
+              className="input h-9 min-w-[220px] flex-1 py-1.5 text-sm"
+            />
+            {moderationCategories.length > 0 && (
+              <select
+                value={moderationCategory}
+                onChange={(e) => setModerationCategory(e.target.value)}
+                className="input h-9 w-auto shrink-0 py-1.5 text-sm"
               >
-                <div>
-                  <p className="font-medium">
-                    {seller.brandName || [seller.firstName, seller.lastName].filter(Boolean).join(" ") || seller.email}
-                  </p>
-                  <p className="text-sm text-zinc-500">{seller.email}</p>
-                  <p className="mt-1 text-sm">
-                    {seller.isSellerVerified ? (
-                      <span className="text-accent-dark">Верифицирован</span>
-                    ) : (
-                      <span className="text-zinc-500">Не верифицирован</span>
-                    )}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleToggleVerify(seller.id, !seller.isSellerVerified)}
-                  className={
-                    seller.isSellerVerified
-                      ? "rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
-                      : "btn-primary px-3.5 py-1.5 text-sm"
-                  }
-                >
-                  {seller.isSellerVerified ? "Снять верификацию" : "Верифицировать"}
-                </button>
-              </li>
-            ))}
-          </ul>
-        ))}
+                <option value="">Все категории</option>
+                {moderationCategories.map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
 
-      {tab === "cities" &&
-        (cityUsersLoading ? (
-          <p className="text-sm text-zinc-500">Загрузка…</p>
-        ) : cityUsers.length === 0 ? (
-          <p className="text-sm text-zinc-500">Нет городов на проверке</p>
-        ) : (
-          <ul className="flex flex-col gap-3">
-            {cityUsers.map((cityUser) => (
-              <li key={cityUser.id} className="card flex items-center justify-between gap-2 p-4">
-                <div>
-                  <p className="font-medium">
-                    {cityUser.brandName || [cityUser.firstName, cityUser.lastName].filter(Boolean).join(" ") || cityUser.email}
-                  </p>
-                  <p className="text-sm text-zinc-500">{cityUser.email}</p>
-                  <p className="mt-1 text-sm">
-                    Указал город: <span className="font-medium">{cityUser.city}</span>
-                  </p>
-                </div>
-                <div className="flex gap-2 text-sm">
+          {servicesLoading ? (
+            <p className="text-sm text-zinc-500">Загрузка…</p>
+          ) : services.length === 0 ? (
+            <p className="text-sm text-zinc-500">Нет услуг на модерации</p>
+          ) : filteredServices.length === 0 ? (
+            <p className="text-sm text-zinc-500">Ничего не найдено по фильтру</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {filteredServices.map((service) => (
+                <li key={service.id} className="card flex flex-col gap-2 p-4">
+                  <div>
+                    <p className="font-medium">{service.title}</p>
+                    <p className="text-sm text-zinc-500">
+                      {service.seller ? sellerLabel(service.seller) : "Продавец"}
+                      {service.category && ` · ${service.category.name}`}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      {service.description}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 text-sm">
+                    <button
+                      onClick={() => handleApprove(service.id)}
+                      className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                    >
+                      Одобрить
+                    </button>
+                    <button
+                      onClick={() => handleReject(service.id)}
+                      className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                    >
+                      Отклонить
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
+      {tab === "sellers" && (
+        <>
+          <div className="mb-4 flex flex-wrap gap-2">
+            <input
+              value={sellersSearch}
+              onChange={(e) => setSellersSearch(e.target.value)}
+              placeholder="Поиск: имя, бренд, email…"
+              className="input h-9 min-w-[220px] flex-1 py-1.5 text-sm"
+            />
+            <select
+              value={sellersStatus}
+              onChange={(e) => setSellersStatus(e.target.value as typeof sellersStatus)}
+              className="input h-9 w-auto shrink-0 py-1.5 text-sm"
+            >
+              <option value="all">Все</option>
+              <option value="verified">Верифицированные</option>
+              <option value="unverified">Не верифицированные</option>
+            </select>
+          </div>
+
+          {sellersLoading ? (
+            <p className="text-sm text-zinc-500">Загрузка…</p>
+          ) : sellers.length === 0 ? (
+            <p className="text-sm text-zinc-500">Нет продавцов</p>
+          ) : filteredSellers.length === 0 ? (
+            <p className="text-sm text-zinc-500">Ничего не найдено по фильтру</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {filteredSellers.map((seller) => (
+                <li
+                  key={seller.id}
+                  className="card flex items-center justify-between gap-2 p-4"
+                >
+                  <div>
+                    <p className="font-medium">{sellerLabel(seller)}</p>
+                    <p className="text-sm text-zinc-500">{seller.email}</p>
+                    <p className="mt-1 text-sm">
+                      {seller.isSellerVerified ? (
+                        <span className="text-accent-dark">Верифицирован</span>
+                      ) : (
+                        <span className="text-zinc-500">Не верифицирован</span>
+                      )}
+                    </p>
+                  </div>
                   <button
-                    onClick={() => handleApproveCity(cityUser.id)}
-                    className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                    onClick={() => handleToggleVerify(seller.id, !seller.isSellerVerified)}
+                    className={
+                      seller.isSellerVerified
+                        ? "rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                        : "btn-primary px-3.5 py-1.5 text-sm"
+                    }
                   >
-                    Одобрить
+                    {seller.isSellerVerified ? "Снять верификацию" : "Верифицировать"}
                   </button>
-                  <button
-                    onClick={() => handleRejectCity(cityUser.id)}
-                    className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
-                  >
-                    Отклонить
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ))}
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+
+      {tab === "cities" && (
+        <>
+          <div className="mb-4">
+            <input
+              value={citiesSearch}
+              onChange={(e) => setCitiesSearch(e.target.value)}
+              placeholder="Поиск: имя, email, город…"
+              className="input h-9 w-full max-w-md py-1.5 text-sm"
+            />
+          </div>
+
+          {cityUsersLoading ? (
+            <p className="text-sm text-zinc-500">Загрузка…</p>
+          ) : cityUsers.length === 0 ? (
+            <p className="text-sm text-zinc-500">Нет городов на проверке</p>
+          ) : filteredCityUsers.length === 0 ? (
+            <p className="text-sm text-zinc-500">Ничего не найдено по фильтру</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {filteredCityUsers.map((cityUser) => (
+                <li key={cityUser.id} className="card flex items-center justify-between gap-2 p-4">
+                  <div>
+                    <p className="font-medium">{sellerLabel(cityUser)}</p>
+                    <p className="text-sm text-zinc-500">{cityUser.email}</p>
+                    <p className="mt-1 text-sm">
+                      Указал город: <span className="font-medium">{cityUser.city}</span>
+                    </p>
+                  </div>
+                  <div className="flex gap-2 text-sm">
+                    <button
+                      onClick={() => handleApproveCity(cityUser.id)}
+                      className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                    >
+                      Одобрить
+                    </button>
+                    <button
+                      onClick={() => handleRejectCity(cityUser.id)}
+                      className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                    >
+                      Отклонить
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
     </main>
   );
 }
