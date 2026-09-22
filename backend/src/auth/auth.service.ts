@@ -126,6 +126,38 @@ export class AuthService {
     return this.issueTokens(user);
   }
 
+  async resendVerification(userId: string): Promise<{ message: string }> {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    if (user.isEmailVerified) {
+      return { message: 'Email already verified' };
+    }
+
+    const verificationToken = generateOpaqueToken();
+    await this.usersService.update(user.id, {
+      emailVerificationTokenHash: hashToken(verificationToken),
+      emailVerificationTokenExpiresAt: new Date(
+        Date.now() + EMAIL_VERIFICATION_TTL_MS,
+      ),
+    });
+
+    try {
+      await this.mailService.sendEmailVerification(
+        user.email,
+        verificationToken,
+      );
+    } catch (err) {
+      this.logger.error(
+        `Не удалось отправить письмо подтверждения на ${user.email}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+    }
+
+    return { message: 'Verification email sent' };
+  }
+
   async verifyEmail(token: string): Promise<{ message: string }> {
     const user = await this.usersService.findByEmailVerificationTokenHash(
       hashToken(token),

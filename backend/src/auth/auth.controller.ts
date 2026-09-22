@@ -1,7 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags } from '@nestjs/swagger';
+import type { JwtPayload } from './auth.service';
 import { AuthService } from './auth.service';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
@@ -48,5 +51,12 @@ export class AuthController {
   @Get('verify-email/:token')
   verifyEmail(@Param('token') token: string) {
     return this.authService.verifyEmail(token);
+  }
+
+  @Throttle(AUTH_THROTTLE)
+  @UseGuards(JwtAuthGuard)
+  @Post('resend-verification')
+  resendVerification(@CurrentUser() user: JwtPayload) {
+    return this.authService.resendVerification(user.sub);
   }
 }

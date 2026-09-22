@@ -4,7 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { deleteAccount, updateMe, uploadAvatarFile, type PublicUser } from "@/lib/api";
+import {
+  deleteAccount,
+  resendVerification,
+  updateMe,
+  uploadAvatarFile,
+  type PublicUser,
+} from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { CITIES } from "@/lib/cities";
 
@@ -15,6 +21,23 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+
+  async function handleResendVerification() {
+    setResending(true);
+    setResendMessage(null);
+    try {
+      await resendVerification();
+      setResendMessage("Письмо отправлено повторно — проверьте почту (и «Спам»).");
+    } catch (err) {
+      setResendMessage(
+        err instanceof Error ? err.message : "Не удалось отправить письмо",
+      );
+    } finally {
+      setResending(false);
+    }
+  }
 
   async function handleDeleteAccount() {
     if (
@@ -73,11 +96,22 @@ export default function ProfilePage() {
       <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">{user.email}</p>
       <div className="mb-6">
         {!user.isEmailVerified && (
-          <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-            Email не подтверждён. Мы отправили письмо со ссылкой на {user.email}{" "}
-            при регистрации — если не пришло, проверьте папку «Спам» или
-            напишите в поддержку через кнопку «Написать нам».
-          </p>
+          <div className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+            <p>
+              Email не подтверждён. Мы отправили письмо со ссылкой на{" "}
+              {user.email} при регистрации — если не пришло, проверьте папку
+              «Спам».
+            </p>
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resending}
+              className="mt-1.5 font-medium underline disabled:opacity-60"
+            >
+              {resending ? "Отправляем…" : "Отправить письмо ещё раз"}
+            </button>
+            {resendMessage && <p className="mt-1">{resendMessage}</p>}
+          </div>
         )}
       </div>
 

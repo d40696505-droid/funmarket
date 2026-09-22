@@ -114,6 +114,12 @@ export function getMe() {
   return request<PublicUser>("/api/users/me");
 }
 
+export function resendVerification() {
+  return request<{ message: string }>("/api/auth/resend-verification", {
+    method: "POST",
+  });
+}
+
 export function forgotPassword(email: string) {
   return request<{ message: string }>("/api/auth/forgot-password", {
     method: "POST",
