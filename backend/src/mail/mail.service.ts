@@ -42,6 +42,9 @@ export class MailService {
         host,
         port,
         secure: port === 465,
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 10_000,
         auth: { user, pass: password },
       });
     } else {
@@ -66,7 +69,18 @@ export class MailService {
       );
       return;
     }
-    await this.transporter.sendMail({ from: this.from, to, subject, html });
+    // Не await'им саму отправку — иначе медленный/зависший SMTP держит
+    // HTTP-ответ пользователю (было: 30+ секунд на регистрацию из-за
+    // таймаута соединения, пока прокси не обрывал запрос раньше, чем
+    // backend успевал ответить). Ошибку логируем сами, наружу больше не
+    // прокидываем — вызывающему коду (auth.service.ts) реагировать не на
+    // что, письмо — это side effect, а не часть основного запроса.
+    this.transporter.sendMail({ from: this.from, to, subject, html }).catch((err) => {
+      this.logger.error(
+        `Не удалось отправить письмо на ${to}`,
+        err instanceof Error ? err.stack : String(err),
+      );
+    });
   }
 
   sendEmailVerification(email: string, token: string): Promise<void> {
