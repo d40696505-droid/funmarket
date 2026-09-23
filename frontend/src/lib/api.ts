@@ -592,6 +592,9 @@ export interface Booking {
   totalAmount: string | null;
   paymentDeadline: string | null;
   escrowReleaseAt: string | null;
+  proposedDate: string | null;
+  proposedStartTime: string | null;
+  proposedEndTime: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -636,6 +639,25 @@ export function cancelBooking(id: string, reason?: string) {
 
 export function getMyBookings(params: { as?: "buyer" | "seller"; status?: BookingStatus } = {}) {
   return request<Booking[]>(`/api/bookings${toQueryString(params)}`);
+}
+
+export function proposeReschedule(id: string, date: string, startTime: string) {
+  return request<Booking>(`/api/bookings/${id}/propose-reschedule`, {
+    method: "PATCH",
+    body: JSON.stringify({ date, startTime }),
+  });
+}
+
+export function acceptReschedule(id: string) {
+  return request<Booking>(`/api/bookings/${id}/accept-reschedule`, {
+    method: "PATCH",
+  });
+}
+
+export function rejectReschedule(id: string) {
+  return request<Booking>(`/api/bookings/${id}/reject-reschedule`, {
+    method: "PATCH",
+  });
 }
 
 // ---- Уведомления (Фаза 3) ----

@@ -19,6 +19,7 @@ import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { ConfirmBookingDto } from './dto/confirm-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ListBookingsDto } from './dto/list-bookings.dto';
+import { ProposeRescheduleDto } from './dto/propose-reschedule.dto';
 import { RejectBookingDto } from './dto/reject-booking.dto';
 
 @ApiTags('bookings')
@@ -68,6 +69,25 @@ export class BookingsController {
     @Body() dto: RejectBookingDto,
   ) {
     return this.bookingsService.reject(id, user.sub, dto.reason);
+  }
+
+  @Patch(':id/propose-reschedule')
+  proposeReschedule(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') id: string,
+    @Body() dto: ProposeRescheduleDto,
+  ) {
+    return this.bookingsService.proposeReschedule(id, user.sub, dto);
+  }
+
+  @Patch(':id/accept-reschedule')
+  acceptReschedule(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.bookingsService.acceptReschedule(id, user.sub);
+  }
+
+  @Patch(':id/reject-reschedule')
+  rejectReschedule(@CurrentUser() user: JwtPayload, @Param('id') id: string) {
+    return this.bookingsService.rejectReschedule(id, user.sub);
   }
 
   // Только для dev/test — детерминированный триггер крона автоотмены неоплаченных

@@ -18,6 +18,9 @@ export enum NotificationType {
   PAYMENT_EXPIRED = 'payment_expired',
   PAYOUT_RELEASED = 'payout_released',
   BOOKING_DISPUTED = 'booking_disputed',
+  BOOKING_RESCHEDULE_PROPOSED = 'booking_reschedule_proposed',
+  BOOKING_RESCHEDULED = 'booking_rescheduled',
+  BOOKING_RESCHEDULE_REJECTED = 'booking_reschedule_rejected',
 }
 
 @Entity('notifications')

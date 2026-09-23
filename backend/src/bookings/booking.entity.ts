@@ -87,6 +87,18 @@ export class Booking {
   @Column({ type: 'timestamptz', nullable: true })
   escrowReleaseAt: Date | null;
 
+  // Предложенные продавцом новая дата/время для уже оплаченного заказа —
+  // не применяются сразу, ждут подтверждения покупателем (propose →
+  // accept/reject). Наличие proposedDate = есть незакрытое предложение.
+  @Column({ type: 'date', nullable: true })
+  proposedDate: string | null;
+
+  @Column({ type: 'time', nullable: true })
+  proposedStartTime: string | null;
+
+  @Column({ type: 'time', nullable: true })
+  proposedEndTime: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

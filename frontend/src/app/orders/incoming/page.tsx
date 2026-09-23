@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import {
   cancelBooking,
   confirmBooking,
+  disputeBooking,
   getMyBookings,
+  proposeReschedule,
+  refundCancelBooking,
   rejectBooking,
   type Booking,
 } from "@/lib/api";
@@ -42,6 +45,10 @@ export default function IncomingOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState<string | null>(null);
   const [fixedAmountDrafts, setFixedAmountDrafts] = useState<Record<string, string>>({});
+  const [rescheduleDrafts, setRescheduleDrafts] = useState<
+    Record<string, { date: string; time: string }>
+  >({});
+  const [reschedulingId, setReschedulingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -92,6 +99,42 @@ export default function IncomingOrdersPage() {
       reload();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Не удалось отменить");
+    }
+  }
+
+  async function handleRefundCancel(id: string) {
+    if (!confirm("Отменить оплаченный заказ и вернуть покупателю средства?")) return;
+    setActionError(null);
+    try {
+      await refundCancelBooking(id);
+      reload();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Не удалось отменить с возвратом");
+    }
+  }
+
+  async function handleDispute(id: string) {
+    const reason = prompt("Опишите проблему — админ рассмотрит спор по переписке в чате:");
+    if (!reason) return;
+    setActionError(null);
+    try {
+      await disputeBooking(id, reason);
+      reload();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Не удалось открыть спор");
+    }
+  }
+
+  async function handlePropose(id: string) {
+    const draft = rescheduleDrafts[id];
+    if (!draft?.date || !draft?.time) return;
+    setActionError(null);
+    try {
+      await proposeReschedule(id, draft.date, draft.time);
+      setReschedulingId(null);
+      reload();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Не удалось предложить перенос");
     }
   }
 
@@ -195,6 +238,74 @@ export default function IncomingOrdersPage() {
                   >
                     Отменить
                   </button>
+                )}
+                {booking.status === "paid" && booking.proposedDate && (
+                  <span className="text-sm text-zinc-500">
+                    Предложен перенос на {booking.proposedDate}{" "}
+                    {booking.proposedStartTime?.slice(0, 5)} — ждём подтверждения покупателя
+                  </span>
+                )}
+                {booking.status === "paid" && !booking.proposedDate && (
+                  <>
+                    {reschedulingId === booking.id ? (
+                      <>
+                        <input
+                          type="date"
+                          value={rescheduleDrafts[booking.id]?.date ?? ""}
+                          onChange={(e) =>
+                            setRescheduleDrafts((prev) => ({
+                              ...prev,
+                              [booking.id]: { ...prev[booking.id], date: e.target.value, time: prev[booking.id]?.time ?? "" },
+                            }))
+                          }
+                          className="input w-36 py-1 text-sm"
+                        />
+                        <input
+                          type="time"
+                          value={rescheduleDrafts[booking.id]?.time ?? ""}
+                          onChange={(e) =>
+                            setRescheduleDrafts((prev) => ({
+                              ...prev,
+                              [booking.id]: { ...prev[booking.id], time: e.target.value, date: prev[booking.id]?.date ?? "" },
+                            }))
+                          }
+                          className="input w-24 py-1 text-sm"
+                        />
+                        <button
+                          onClick={() => handlePropose(booking.id)}
+                          disabled={!rescheduleDrafts[booking.id]?.date || !rescheduleDrafts[booking.id]?.time}
+                          className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] disabled:opacity-50 dark:border-white/10 dark:hover:bg-white/[.08]"
+                        >
+                          Отправить
+                        </button>
+                        <button
+                          onClick={() => setReschedulingId(null)}
+                          className="rounded-full px-3 py-1 text-zinc-500 hover:bg-black/[.04] dark:hover:bg-white/[.08]"
+                        >
+                          Отмена
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => setReschedulingId(booking.id)}
+                        className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                      >
+                        Предложить перенос
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleRefundCancel(booking.id)}
+                      className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                    >
+                      Отменить с возвратом
+                    </button>
+                    <button
+                      onClick={() => handleDispute(booking.id)}
+                      className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                    >
+                      Открыть спор
+                    </button>
+                  </>
                 )}
               </div>
             </li>

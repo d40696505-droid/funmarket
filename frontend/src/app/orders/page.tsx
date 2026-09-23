@@ -6,12 +6,14 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BookingsCalendar } from "@/components/BookingsCalendar";
 import {
+  acceptReschedule,
   cancelBooking,
   createReview,
   disputeBooking,
   getMyBookings,
   initiatePayment,
   refundCancelBooking,
+  rejectReschedule,
   uploadReviewPhotoFile,
   type Booking,
 } from "@/lib/api";
@@ -95,6 +97,26 @@ export default function MyOrdersPage() {
       reload();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Не удалось открыть спор");
+    }
+  }
+
+  async function handleAcceptReschedule(id: string) {
+    setActionError(null);
+    try {
+      await acceptReschedule(id);
+      reload();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Не удалось подтвердить перенос");
+    }
+  }
+
+  async function handleRejectReschedule(id: string) {
+    setActionError(null);
+    try {
+      await rejectReschedule(id);
+      reload();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Не удалось отклонить перенос");
     }
   }
 
@@ -227,6 +249,32 @@ export default function MyOrdersPage() {
                     >
                       Отменить
                     </button>
+                  </div>
+                )}
+
+                {booking.status === "paid" && booking.proposedDate && (
+                  <div className="flex flex-col items-start gap-2 rounded-lg bg-amber-50 p-3 dark:bg-amber-950">
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      Продавец предлагает перенести заказ на{" "}
+                      <span className="font-medium">
+                        {booking.proposedDate} {booking.proposedStartTime?.slice(0, 5)}
+                      </span>{" "}
+                      (сейчас {booking.bookingDate} {booking.startTime.slice(0, 5)})
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleAcceptReschedule(booking.id)}
+                        className="rounded-full border border-black/10 px-3 py-1 text-sm hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                      >
+                        Подтвердить перенос
+                      </button>
+                      <button
+                        onClick={() => handleRejectReschedule(booking.id)}
+                        className="rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                      >
+                        Отклонить
+                      </button>
+                    </div>
                   </div>
                 )}
 

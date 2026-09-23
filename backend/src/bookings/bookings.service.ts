@@ -33,6 +33,7 @@ import { Booking, BookingStatus } from './booking.entity';
 import { ConfirmBookingDto } from './dto/confirm-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { ListBookingsDto } from './dto/list-bookings.dto';
+import { ProposeRescheduleDto } from './dto/propose-reschedule.dto';
 
 const AUTO_REJECTION_REASON =
   'Автоматически отклонено: продавец не подтвердил бронирование вовремя';
@@ -375,6 +376,141 @@ export class BookingsService {
       booking.sellerId,
       booking.id,
       `Заказ отменён (${isBuyerCancelling ? 'покупателем' : 'продавцом'}).`,
+    );
+    return saved;
+  }
+
+  // Продавец предлагает новую дату/время для уже оплаченного заказа —
+  // не применяется сразу, ждёт accept/reject покупателем (см. п. 2 ниже).
+  async proposeReschedule(
+    id: string,
+    sellerId: string,
+    dto: ProposeRescheduleDto,
+  ): Promise<Booking> {
+    const booking = await this.findByIdOrThrow(id);
+    if (booking.sellerId !== sellerId) {
+      throw new ForbiddenException('Нет доступа к этому заказу');
+    }
+    if (booking.status !== BookingStatus.PAID) {
+      throw new BadRequestException(
+        'Перенести можно только оплаченный заказ',
+      );
+    }
+
+    const newStart = dayjs(`${dto.date}T${dto.startTime}`);
+    if (newStart.isBefore(dayjs().add(MIN_LEAD_TIME_HOURS, 'hour'))) {
+      throw new BadRequestException(
+        `Новое время должно быть не менее чем через ${MIN_LEAD_TIME_HOURS} часов`,
+      );
+    }
+    const newEnd = newStart.add(booking.service.durationMinutes, 'minute');
+
+    const conflict = await this.bookingsRepository.findOne({
+      where: {
+        sellerId: booking.sellerId,
+        bookingDate: dto.date,
+        startTime: dto.startTime,
+        status: In([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.PAID]),
+      },
+    });
+    if (conflict && conflict.id !== booking.id) {
+      throw new ConflictException('На это время уже есть другой заказ');
+    }
+
+    booking.proposedDate = dto.date;
+    booking.proposedStartTime = dto.startTime;
+    booking.proposedEndTime = newEnd.format('HH:mm');
+    const saved = await this.bookingsRepository.save(booking);
+
+    await this.notificationsService.notify(
+      booking.buyer,
+      NotificationType.BOOKING_RESCHEDULE_PROPOSED,
+      'Продавец предлагает перенести заказ',
+      `Продавец предлагает перенести заказ на ${dto.date} ${dto.startTime} вместо ${booking.bookingDate} ${booking.startTime}. Подтвердите или отклоните в разделе «Мои заказы».`,
+      { bookingId: booking.id },
+    );
+    await this.notifyChat(
+      booking.buyerId,
+      booking.sellerId,
+      booking.id,
+      `Продавец предлагает перенести заказ на ${dto.date} ${dto.startTime}.`,
+    );
+    return saved;
+  }
+
+  async acceptReschedule(id: string, buyerId: string): Promise<Booking> {
+    const booking = await this.findByIdOrThrow(id);
+    if (booking.buyerId !== buyerId) {
+      throw new ForbiddenException('Нет доступа к этому заказу');
+    }
+    if (!booking.proposedDate || !booking.proposedStartTime || !booking.proposedEndTime) {
+      throw new BadRequestException('Нет предложения о переносе');
+    }
+
+    const conflict = await this.bookingsRepository.findOne({
+      where: {
+        sellerId: booking.sellerId,
+        bookingDate: booking.proposedDate,
+        startTime: booking.proposedStartTime,
+        status: In([BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.PAID]),
+      },
+    });
+    if (conflict && conflict.id !== booking.id) {
+      throw new ConflictException(
+        'Это время уже занято другим заказом — попросите продавца предложить другое',
+      );
+    }
+
+    booking.bookingDate = booking.proposedDate;
+    booking.startTime = booking.proposedStartTime;
+    booking.endTime = booking.proposedEndTime;
+    booking.proposedDate = null;
+    booking.proposedStartTime = null;
+    booking.proposedEndTime = null;
+    const saved = await this.bookingsRepository.save(booking);
+
+    await this.notificationsService.notify(
+      booking.seller,
+      NotificationType.BOOKING_RESCHEDULED,
+      'Покупатель подтвердил перенос',
+      `Покупатель подтвердил перенос заказа на ${saved.bookingDate} ${saved.startTime}`,
+      { bookingId: booking.id },
+    );
+    await this.notifyChat(
+      booking.buyerId,
+      booking.sellerId,
+      booking.id,
+      `Покупатель подтвердил перенос заказа на ${saved.bookingDate} ${saved.startTime}.`,
+    );
+    return saved;
+  }
+
+  async rejectReschedule(id: string, buyerId: string): Promise<Booking> {
+    const booking = await this.findByIdOrThrow(id);
+    if (booking.buyerId !== buyerId) {
+      throw new ForbiddenException('Нет доступа к этому заказу');
+    }
+    if (!booking.proposedDate) {
+      throw new BadRequestException('Нет предложения о переносе');
+    }
+
+    booking.proposedDate = null;
+    booking.proposedStartTime = null;
+    booking.proposedEndTime = null;
+    const saved = await this.bookingsRepository.save(booking);
+
+    await this.notificationsService.notify(
+      booking.seller,
+      NotificationType.BOOKING_RESCHEDULE_REJECTED,
+      'Покупатель отклонил перенос',
+      `Покупатель отклонил перенос заказа — прежние дата и время (${booking.bookingDate} ${booking.startTime}) остаются в силе`,
+      { bookingId: booking.id },
+    );
+    await this.notifyChat(
+      booking.buyerId,
+      booking.sellerId,
+      booking.id,
+      'Покупатель отклонил перенос заказа — прежние дата и время остаются в силе.',
     );
     return saved;
   }

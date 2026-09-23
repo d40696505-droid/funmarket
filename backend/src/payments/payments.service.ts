@@ -275,7 +275,10 @@ export class PaymentsService {
       .getMany();
   }
 
-  async refundBooking(bookingId: string, buyerId: string): Promise<Booking> {
+  // Раньше отмену с возвратом мог инициировать только покупатель — у
+  // продавца, который не может исполнить уже оплаченный заказ, не было
+  // самостоятельного пути, кроме открытия спора и ожидания админа.
+  async refundBooking(bookingId: string, userId: string): Promise<Booking> {
     const booking = await this.bookingsRepository.findOne({
       where: { id: bookingId },
       relations: { buyer: true, seller: true },
@@ -283,7 +286,8 @@ export class PaymentsService {
     if (!booking) {
       throw new NotFoundException('Заказ не найден');
     }
-    if (booking.buyerId !== buyerId) {
+    const isBuyer = booking.buyerId === userId;
+    if (!isBuyer && booking.sellerId !== userId) {
       throw new ForbiddenException('Нет доступа к этому заказу');
     }
     if (booking.status !== BookingStatus.PAID) {
@@ -311,17 +315,17 @@ export class PaymentsService {
     const saved = await this.bookingsRepository.save(booking);
 
     await this.notificationsService.notify(
-      booking.seller,
+      isBuyer ? booking.seller : booking.buyer,
       NotificationType.BOOKING_CANCELLED,
       'Заказ отменён с возвратом',
-      `Покупатель отменил оплаченный заказ на ${booking.bookingDate} ${booking.startTime}, средства возвращены`,
+      `${isBuyer ? 'Покупатель' : 'Продавец'} отменил оплаченный заказ на ${booking.bookingDate} ${booking.startTime}, средства возвращены`,
       { bookingId: booking.id },
     );
     await this.notifyChat(
       booking.buyerId,
       booking.sellerId,
       booking.id,
-      'Заказ отменён покупателем, средства возвращены.',
+      `Заказ отменён ${isBuyer ? 'покупателем' : 'продавцом'}, средства возвращены.`,
     );
     return saved;
   }
