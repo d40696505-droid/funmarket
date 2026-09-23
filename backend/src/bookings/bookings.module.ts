@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtAuthModule } from '../auth/guards/jwt-auth.module';
 import { ChatsModule } from '../chats/chats.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PaymentsModule } from '../payments/payments.module';
 import { ScheduleModule } from '../schedule/schedule.module';
 import { Service } from '../services/service.entity';
 import { UsersModule } from '../users/users.module';
@@ -18,6 +19,7 @@ import { BookingsService } from './bookings.service';
     NotificationsModule,
     ChatsModule,
     UsersModule,
+    PaymentsModule,
   ],
   controllers: [BookingsController],
   providers: [BookingsService],

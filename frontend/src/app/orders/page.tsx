@@ -111,6 +111,13 @@ export default function MyOrdersPage() {
   }
 
   async function handleRejectReschedule(id: string) {
+    if (
+      !confirm(
+        "Отклонить перенос? Заказ будет полностью отменён, деньги вернутся вам — это действие необратимо.",
+      )
+    ) {
+      return;
+    }
     setActionError(null);
     try {
       await rejectReschedule(id);
@@ -259,7 +266,8 @@ export default function MyOrdersPage() {
                       <span className="font-medium">
                         {booking.proposedDate} {booking.proposedStartTime?.slice(0, 5)}
                       </span>{" "}
-                      (сейчас {booking.bookingDate} {booking.startTime.slice(0, 5)})
+                      (сейчас {booking.bookingDate} {booking.startTime.slice(0, 5)}). Если новое
+                      время не подходит — заказ можно только отменить целиком, с возвратом денег.
                     </p>
                     <div className="flex gap-2">
                       <button
@@ -272,7 +280,7 @@ export default function MyOrdersPage() {
                         onClick={() => handleRejectReschedule(booking.id)}
                         className="rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
                       >
-                        Отклонить
+                        Отклонить и отменить заказ
                       </button>
                     </div>
                   </div>

@@ -11,6 +11,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import dayjs from 'dayjs';
 import { In, QueryFailedError, Repository } from 'typeorm';
+import { PaymentsService } from '../payments/payments.service';
 import { ScheduleService } from '../schedule/schedule.service';
 import { UsersService } from '../users/users.service';
 import {
@@ -57,6 +58,7 @@ export class BookingsService {
     private readonly chatsService: ChatsService,
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly paymentsService: PaymentsService,
   ) {
     this.paymentTimeoutMinutes = Number(
       this.configService.get(
@@ -485,6 +487,12 @@ export class BookingsService {
     return saved;
   }
 
+  // Отклонение переноса означает, что стороны не договорились о новом
+  // времени — раз продавец уже сигнализировал, что исходное время ему не
+  // подходит (иначе не предлагал бы перенос), простой откат к старой дате
+  // оставлял бы заказ в подвешенном состоянии. Поэтому отклонение сразу
+  // отменяет заказ с полным возвратом — переиспользуем ту же логику, что
+  // для самостоятельной отмены оплаченного заказа покупателем.
   async rejectReschedule(id: string, buyerId: string): Promise<Booking> {
     const booking = await this.findByIdOrThrow(id);
     if (booking.buyerId !== buyerId) {
@@ -497,22 +505,13 @@ export class BookingsService {
     booking.proposedDate = null;
     booking.proposedStartTime = null;
     booking.proposedEndTime = null;
-    const saved = await this.bookingsRepository.save(booking);
+    await this.bookingsRepository.save(booking);
 
-    await this.notificationsService.notify(
-      booking.seller,
-      NotificationType.BOOKING_RESCHEDULE_REJECTED,
-      'Покупатель отклонил перенос',
-      `Покупатель отклонил перенос заказа — прежние дата и время (${booking.bookingDate} ${booking.startTime}) остаются в силе`,
-      { bookingId: booking.id },
+    return this.paymentsService.refundBooking(
+      id,
+      buyerId,
+      'Покупатель отклонил перенос — заказ отменён, средства возвращены покупателю.',
     );
-    await this.notifyChat(
-      booking.buyerId,
-      booking.sellerId,
-      booking.id,
-      'Покупатель отклонил перенос заказа — прежние дата и время остаются в силе.',
-    );
-    return saved;
   }
 
   findMine(userId: string, query: ListBookingsDto): Promise<Booking[]> {

@@ -278,7 +278,11 @@ export class PaymentsService {
   // Раньше отмену с возвратом мог инициировать только покупатель — у
   // продавца, который не может исполнить уже оплаченный заказ, не было
   // самостоятельного пути, кроме открытия спора и ожидания админа.
-  async refundBooking(bookingId: string, userId: string): Promise<Booking> {
+  async refundBooking(
+    bookingId: string,
+    userId: string,
+    contextNote?: string,
+  ): Promise<Booking> {
     const booking = await this.bookingsRepository.findOne({
       where: { id: bookingId },
       relations: { buyer: true, seller: true },
@@ -318,14 +322,16 @@ export class PaymentsService {
       isBuyer ? booking.seller : booking.buyer,
       NotificationType.BOOKING_CANCELLED,
       'Заказ отменён с возвратом',
-      `${isBuyer ? 'Покупатель' : 'Продавец'} отменил оплаченный заказ на ${booking.bookingDate} ${booking.startTime}, средства возвращены`,
+      contextNote ??
+        `${isBuyer ? 'Покупатель' : 'Продавец'} отменил оплаченный заказ на ${booking.bookingDate} ${booking.startTime}, средства возвращены`,
       { bookingId: booking.id },
     );
     await this.notifyChat(
       booking.buyerId,
       booking.sellerId,
       booking.id,
-      `Заказ отменён ${isBuyer ? 'покупателем' : 'продавцом'}, средства возвращены.`,
+      contextNote ??
+        `Заказ отменён ${isBuyer ? 'покупателем' : 'продавцом'}, средства возвращены.`,
     );
     return saved;
   }
