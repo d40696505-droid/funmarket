@@ -1,0 +1,8 @@
+[Unit]
+Description=HobbyHub daily DB + MinIO backup
+After=postgresql.service minio.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/hobbyhub/app/scripts/backup.sh
+User=root
