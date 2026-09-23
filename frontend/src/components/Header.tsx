@@ -274,26 +274,35 @@ export function Header() {
       )}
 
       {menuOpen && (
-        <nav className="flex flex-col gap-0.5 border-t border-black/10 px-4 py-3 dark:border-white/10 md:hidden">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={
-                isActive(link.href)
-                  ? "rounded-lg bg-zinc-900 px-2 py-2 text-sm font-medium text-white dark:bg-white dark:text-zinc-900"
-                  : MOBILE_LINK_CLASS
-              }
-              onClick={closeMenu}
+        <nav className="flex flex-col gap-2 border-t border-black/10 px-4 py-3 dark:border-white/10 md:hidden">
+          <div className="grid grid-cols-2 gap-1">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={
+                  isActive(link.href)
+                    ? "truncate rounded-lg bg-zinc-900 px-2 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-zinc-900"
+                    : `truncate ${MOBILE_LINK_CLASS}`
+                }
+                onClick={closeMenu}
+              >
+                {link.label}
+              </Link>
+            ))}
+            <button
+              type="button"
+              onClick={handleContactSupport}
+              className={`truncate text-left ${MOBILE_LINK_CLASS}`}
             >
-              {link.label}
-            </Link>
-          ))}
+              Написать нам
+            </button>
+          </div>
 
           {categories.length > 0 && (
-            <div className="mt-2 border-t border-black/10 pt-2 dark:border-white/10">
-              <p className="px-2 pb-1 text-xs text-zinc-500">Интересы</p>
-              <div className="flex flex-wrap gap-1.5 px-2">
+            <div className="border-t border-black/10 pt-2 dark:border-white/10">
+              <p className="pb-1 text-xs text-zinc-500">Интересы</p>
+              <div className="flex flex-wrap gap-1.5">
                 {categories.map((c) => (
                   <Link
                     key={c.id}
@@ -308,37 +317,35 @@ export function Header() {
             </div>
           )}
 
-          <button type="button" onClick={handleContactSupport} className={`${MOBILE_LINK_CLASS} text-left`}>
-            Написать нам
-          </button>
-
-          {loading ? null : user ? (
-            <>
-              <Link
-                href="/profile"
-                className={`${MOBILE_LINK_CLASS} font-medium text-foreground dark:text-foreground`}
-                onClick={closeMenu}
-              >
-                {user.firstName ?? user.email}
-              </Link>
-              <button onClick={handleLogout} className="btn-secondary mt-2 self-start px-3.5 py-1.5">
-                Выйти
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className={MOBILE_LINK_CLASS} onClick={closeMenu}>
-                Вход
-              </Link>
-              <Link
-                href="/register"
-                className="btn-dark mt-2 self-start px-3.5 py-1.5"
-                onClick={closeMenu}
-              >
-                Регистрация
-              </Link>
-            </>
-          )}
+          <div className="flex items-center justify-between gap-2 border-t border-black/10 pt-2 dark:border-white/10">
+            {loading ? null : user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="truncate text-sm font-medium hover:underline"
+                  onClick={closeMenu}
+                >
+                  {user.firstName ?? user.email}
+                </Link>
+                <button onClick={handleLogout} className="btn-secondary shrink-0 px-3 py-1.5 text-sm">
+                  Выйти
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm hover:underline" onClick={closeMenu}>
+                  Вход
+                </Link>
+                <Link
+                  href="/register"
+                  className="btn-dark shrink-0 px-3 py-1.5 text-sm"
+                  onClick={closeMenu}
+                >
+                  Регистрация
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
       )}
 

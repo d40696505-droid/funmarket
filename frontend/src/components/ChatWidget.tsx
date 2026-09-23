@@ -173,7 +173,13 @@ export function ChatWidget() {
     setError(null);
     setLoadingMessages(true);
     getChatMessages(chatId)
-      .then(setMessages)
+      .then((msgs) => {
+        setMessages(msgs);
+        // getChatMessages помечает чужие сообщения прочитанными на бэкенде —
+        // обновляем список чатов, чтобы бейдж непрочитанных пропал сразу,
+        // а не только после возврата к списку.
+        reloadChats();
+      })
       .catch(() => setMessages([]))
       .finally(() => setLoadingMessages(false));
   }
@@ -231,7 +237,9 @@ export function ChatWidget() {
   return (
     <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3">
       {open && (
-        <div className="card flex h-[28rem] w-[22rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden shadow-xl">
+        // На мобильных — во весь экран (fixed inset-0 перекрывает позиционирование
+        // родителя), с sm: возвращается к плавающей карточке снизу-справа.
+        <div className="fixed inset-0 z-40 flex flex-col overflow-hidden bg-card sm:static sm:inset-auto sm:h-[28rem] sm:w-[22rem] sm:max-w-[calc(100vw-2rem)] sm:rounded-xl sm:border sm:border-black/10 sm:shadow-xl sm:dark:border-white/10">
           {activeChat ? (
             <>
               <div className="flex items-center gap-2 border-b border-black/10 p-3 dark:border-white/10">
@@ -427,7 +435,10 @@ export function ChatWidget() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "Свернуть чат" : "Открыть чат"}
-        className="btn-primary relative flex h-14 w-14 items-center justify-center rounded-full p-0 shadow-lg"
+        // На мобильных панель открытого чата — на весь экран, плавающая кнопка
+        // поверх нее не нужна (в шапке чата уже есть свой "×"); на sm+ панель
+        // компактная, кнопка остаётся видна как обычно.
+        className={`btn-primary relative h-14 w-14 items-center justify-center rounded-full p-0 shadow-lg sm:flex ${open ? "hidden sm:flex" : "flex"}`}
       >
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2}>
           <path
