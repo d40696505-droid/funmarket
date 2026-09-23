@@ -687,6 +687,29 @@ export function markAllNotificationsRead() {
   return request<void>("/api/notifications/read-all", { method: "PATCH" });
 }
 
+// ---- Push-уведомления ----
+
+export function getVapidPublicKey() {
+  return request<{ publicKey: string }>("/api/push/vapid-public-key");
+}
+
+export function subscribePush(sub: {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+}) {
+  return request<{ ok: true }>("/api/push/subscribe", {
+    method: "POST",
+    body: JSON.stringify(sub),
+  });
+}
+
+export function unsubscribePush(endpoint: string) {
+  return request<{ ok: true }>("/api/push/subscribe", {
+    method: "DELETE",
+    body: JSON.stringify({ endpoint }),
+  });
+}
+
 // ---- Чат (Фаза 5) ----
 
 export interface ChatParticipant {

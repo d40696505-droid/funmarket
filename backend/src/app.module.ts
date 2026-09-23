@@ -14,6 +14,7 @@ import { ChatsModule } from './chats/chats.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
+import { PushModule } from './push/push.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { ServicesModule } from './services/services.module';
@@ -43,6 +44,7 @@ import { UsersModule } from './users/users.module';
     ReviewsModule,
     PaymentsModule,
     FavoritesModule,
+    PushModule,
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

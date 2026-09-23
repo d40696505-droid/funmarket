@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { CITIES } from "@/lib/cities";
+import { disablePush, enablePush, getCurrentSubscription, isPushSupported } from "@/lib/push";
 
 export default function ProfilePage() {
   const { user, loading, setUser, logout } = useAuth();
@@ -23,6 +24,35 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
+  const [pushSupported, setPushSupported] = useState(false);
+
+  useEffect(() => {
+    setPushSupported(isPushSupported());
+    getCurrentSubscription()
+      .then((sub) => setPushEnabled(Boolean(sub)))
+      .catch(() => setPushEnabled(false));
+  }, []);
+
+  async function handleTogglePush() {
+    setPushBusy(true);
+    setPushError(null);
+    try {
+      if (pushEnabled) {
+        await disablePush();
+        setPushEnabled(false);
+      } else {
+        await enablePush();
+        setPushEnabled(true);
+      }
+    } catch (err) {
+      setPushError(err instanceof Error ? err.message : "Не удалось изменить настройку");
+    } finally {
+      setPushBusy(false);
+    }
+  }
 
   async function handleResendVerification() {
     setResending(true);
@@ -158,7 +188,29 @@ export default function ProfilePage() {
           несохранённый ввод пользователя */}
       <ProfileForm key={user.id} user={user} onSaved={setUser} />
 
-      <div className="mt-10 border-t border-black/10 pt-4 dark:border-white/10">
+      {pushSupported && (
+        <div className="mt-8 border-t border-black/10 pt-4 dark:border-white/10">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">Push-уведомления в браузере</p>
+              <p className="text-xs text-zinc-500">
+                Новые сообщения и статусы заказов — даже когда сайт закрыт
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleTogglePush}
+              disabled={pushBusy}
+              className={pushEnabled ? "btn-secondary px-3.5 py-1.5 text-sm" : "btn-primary px-3.5 py-1.5 text-sm"}
+            >
+              {pushBusy ? "…" : pushEnabled ? "Отключить" : "Включить"}
+            </button>
+          </div>
+          {pushError && <p className="mt-1.5 text-xs text-red-600">{pushError}</p>}
+        </div>
+      )}
+
+      <div className="mt-8 border-t border-black/10 pt-4 dark:border-white/10">
         <button
           type="button"
           onClick={handleDeleteAccount}

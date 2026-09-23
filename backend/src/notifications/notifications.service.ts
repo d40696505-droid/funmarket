@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MailService } from '../mail/mail.service';
+import { PushService } from '../push/push.service';
 import { User } from '../users/user.entity';
 import { Notification, NotificationType } from './notification.entity';
 
@@ -15,6 +16,7 @@ export class NotificationsService {
     @InjectRepository(Notification)
     private readonly notificationsRepository: Repository<Notification>,
     private readonly mailService: MailService,
+    private readonly pushService: PushService,
   ) {}
 
   async notify(
@@ -33,6 +35,7 @@ export class NotificationsService {
     });
     const saved = await this.notificationsRepository.save(notification);
     await this.mailService.send(user.email, title, body);
+    this.pushService.sendToUser(user.id, { title, body, data });
     return saved;
   }
 

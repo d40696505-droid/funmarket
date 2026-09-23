@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtAuthModule } from '../auth/guards/jwt-auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
 import { Chat } from './chat.entity';
 import { ChatsController } from './chats.controller';
@@ -15,6 +16,7 @@ import { PresenceService } from './presence.service';
     TypeOrmModule.forFeature([Chat, Message, MessageReport]),
     JwtAuthModule,
     UsersModule,
+    NotificationsModule,
   ],
   controllers: [ChatsController],
   providers: [ChatsService, PresenceService, ChatsGateway],

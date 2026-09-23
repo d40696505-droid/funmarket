@@ -7,7 +7,10 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notification.entity';
 import { User } from '../users/user.entity';
+import { UsersService } from '../users/users.service';
 import { censorProfanity } from './content-filter';
 import { Chat } from './chat.entity';
 import { MessageReport } from './message-report.entity';
@@ -44,6 +47,8 @@ export class ChatsService {
     private readonly messageReportsRepository: Repository<MessageReport>,
     private readonly presenceService: PresenceService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly usersService: UsersService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async findOrCreateChat(
@@ -170,6 +175,35 @@ export class ChatsService {
       message: saved,
       recipientId,
     } satisfies MessageCreatedEvent);
+
+    // Email/push — только если получатель сейчас не в сети (нет открытого
+    // сокета ни на одной вкладке): иначе он и так увидит сообщение живьём
+    // через WS, а дублировать письмом на каждую реплику активного диалога
+    // было бы просто спамом. Сбой здесь не должен ломать отправку самого
+    // сообщения — тот же принцип, что и с почтой при регистрации.
+    if (!this.presenceService.isOnline(recipientId)) {
+      try {
+        const [recipient, sender] = await Promise.all([
+          this.usersService.findById(recipientId),
+          this.usersService.findById(senderId),
+        ]);
+        if (recipient) {
+          const senderName =
+            sender?.brandName ||
+            [sender?.firstName, sender?.lastName].filter(Boolean).join(' ') ||
+            'Пользователь';
+          await this.notificationsService.notify(
+            recipient,
+            NotificationType.MESSAGE_RECEIVED,
+            `Новое сообщение от ${senderName}`,
+            saved.text,
+            { chatId: chat.id },
+          );
+        }
+      } catch {
+        // Уведомление не критично для доставки самого сообщения — глотаем.
+      }
+    }
 
     return saved;
   }
