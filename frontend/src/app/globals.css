@@ -116,7 +116,7 @@ body {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(10, 20, 10, 0.72), rgba(10, 25, 10, 0.25));
+    background: linear-gradient(to right, rgba(10, 20, 10, 0.5), rgba(10, 25, 10, 0.1));
   }
 
   .hero-glass {
