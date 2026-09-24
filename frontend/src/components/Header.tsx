@@ -97,6 +97,7 @@ export function Header() {
   if (user) {
     links.push({ href: "/chats", label: "Чаты" });
     links.push({ href: "/favorites", label: "Избранное" });
+    links.push({ href: "/following", label: "Подписки" });
     if (user.role === "buyer" || user.role === "both") {
       links.push({ href: "/orders", label: "Мои заказы" });
     }

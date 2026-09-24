@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoriesModule } from '../categories/categories.module';
 import { JwtAuthModule } from '../auth/guards/jwt-auth.module';
+import { FollowsModule } from '../follows/follows.module';
 import { GeocodingModule } from '../geocoding/geocoding.module';
 import { UsersModule } from '../users/users.module';
 import { ServiceImage } from './service-image.entity';
@@ -16,6 +17,7 @@ import { ServicesService } from './services.service';
     JwtAuthModule,
     UsersModule,
     GeocodingModule,
+    FollowsModule,
   ],
   controllers: [ServicesController],
   providers: [ServicesService],

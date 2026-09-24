@@ -12,6 +12,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ChatsModule } from './chats/chats.module';
 import { FavoritesModule } from './favorites/favorites.module';
+import { FollowsModule } from './follows/follows.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PushModule } from './push/push.module';
@@ -44,6 +45,7 @@ import { UsersModule } from './users/users.module';
     ReviewsModule,
     PaymentsModule,
     FavoritesModule,
+    FollowsModule,
     PushModule,
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

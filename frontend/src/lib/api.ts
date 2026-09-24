@@ -993,3 +993,23 @@ export function clearTokens() {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
 }
+
+export function getFollowedSellerIds() {
+  return request<string[]>("/api/follows/ids");
+}
+
+export function getFollowedSellers() {
+  return request<ProfileSummary[]>("/api/follows");
+}
+
+export function getFollowersCount(sellerId: string) {
+  return request<{ count: number }>(`/api/follows/count/${sellerId}`);
+}
+
+export function followSeller(sellerId: string) {
+  return request<void>(`/api/follows/${sellerId}`, { method: "POST" });
+}
+
+export function unfollowSeller(sellerId: string) {
+  return request<void>(`/api/follows/${sellerId}`, { method: "DELETE" });
+}

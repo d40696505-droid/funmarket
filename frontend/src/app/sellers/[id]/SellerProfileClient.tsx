@@ -2,11 +2,19 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthRequiredModal } from "@/components/AuthRequiredModal";
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { ServiceCard } from "@/components/ServiceCard";
-import { createChat, type ProfileSummary, type Service } from "@/lib/api";
+import {
+  createChat,
+  followSeller,
+  getFollowedSellerIds,
+  getFollowersCount,
+  unfollowSeller,
+  type ProfileSummary,
+  type Service,
+} from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 function displayName(profile: ProfileSummary): string {
@@ -29,6 +37,45 @@ export function SellerProfileClient({
   const [messaging, setMessaging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followBusy, setFollowBusy] = useState(false);
+
+  useEffect(() => {
+    getFollowersCount(profile.id)
+      .then((r) => setFollowersCount(r.count))
+      .catch(() => undefined);
+  }, [profile.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    getFollowedSellerIds()
+      .then((ids) => setFollowing(ids.includes(profile.id)))
+      .catch(() => undefined);
+  }, [user, profile.id]);
+
+  async function handleFollow() {
+    if (!user) {
+      setShowAuthPrompt(true);
+      return;
+    }
+    setFollowBusy(true);
+    setError(null);
+    try {
+      if (following) {
+        await unfollowSeller(profile.id);
+        setFollowersCount((c) => Math.max(0, c - 1));
+      } else {
+        await followSeller(profile.id);
+        setFollowersCount((c) => c + 1);
+      }
+      setFollowing(!following);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось выполнить действие");
+    } finally {
+      setFollowBusy(false);
+    }
+  }
 
   async function handleMessage() {
     if (!user) {
@@ -96,6 +143,7 @@ export function SellerProfileClient({
               "Пока нет отзывов"
             )}
             {profile.city ? ` · ${profile.city}` : ""}
+            {followersCount > 0 ? ` · Подписчиков: ${followersCount}` : ""}
           </p>
 
           {profile.skills.length > 0 && (
@@ -115,13 +163,22 @@ export function SellerProfileClient({
         </div>
 
         {user?.id !== profile.id && (
-          <button
-            onClick={handleMessage}
-            disabled={messaging}
-            className="btn-secondary shrink-0 disabled:opacity-50"
-          >
-            {messaging ? "…" : "Написать"}
-          </button>
+          <div className="flex shrink-0 gap-2">
+            <button
+              onClick={handleFollow}
+              disabled={followBusy}
+              className={`${following ? "btn-secondary" : "btn-primary"} disabled:opacity-50`}
+            >
+              {following ? "Вы подписаны" : "Подписаться"}
+            </button>
+            <button
+              onClick={handleMessage}
+              disabled={messaging}
+              className="btn-secondary disabled:opacity-50"
+            >
+              {messaging ? "…" : "Написать"}
+            </button>
+          </div>
         )}
       </div>
 

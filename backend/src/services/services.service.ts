@@ -1,3 +1,4 @@
+import { FollowsService } from '../follows/follows.service';
 import {
   BadRequestException,
   ForbiddenException,
@@ -64,6 +65,7 @@ export class ServicesService {
     private readonly categoriesService: CategoriesService,
     private readonly geocodingService: GeocodingService,
     private readonly usersService: UsersService,
+    private readonly followsService: FollowsService,
   ) {}
 
   async create(sellerId: string, dto: CreateServiceDto): Promise<Service> {
@@ -454,7 +456,9 @@ export class ServicesService {
     }
     service.status = ServiceStatus.ACTIVE;
     service.moderationComment = null;
-    return this.servicesRepository.save(service);
+    const saved = await this.servicesRepository.save(service);
+    await this.followsService.notifyFollowersOfNewService(saved);
+    return saved;
   }
 
   async reject(id: string, comment: string): Promise<Service> {

@@ -6,6 +6,7 @@ import { Chat } from '../chats/chat.entity';
 import { MessageReport } from '../chats/message-report.entity';
 import { Message } from '../chats/message.entity';
 import { Favorite } from '../favorites/favorite.entity';
+import { Follow } from '../follows/follow.entity';
 import { Notification } from '../notifications/notification.entity';
 import { Review } from '../reviews/review.entity';
 import { ScheduleException } from '../schedule/schedule-exception.entity';
@@ -39,6 +40,7 @@ export const AppDataSource = new DataSource({
     Review,
     Transaction,
     Favorite,
+    Follow,
   ],
   migrations: ['src/migrations/*.ts'],
   synchronize: false,

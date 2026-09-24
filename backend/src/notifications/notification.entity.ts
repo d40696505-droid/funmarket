@@ -22,6 +22,7 @@ export enum NotificationType {
   BOOKING_RESCHEDULED = 'booking_rescheduled',
   BOOKING_RESCHEDULE_REJECTED = 'booking_reschedule_rejected',
   BOOKING_COMPLETED = 'booking_completed',
+  SELLER_NEW_SERVICE = 'seller_new_service',
   MESSAGE_RECEIVED = 'message_received',
 }
 
