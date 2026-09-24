@@ -92,10 +92,31 @@ body {
      .hero-glass в разметке — так его левый край совпадает с остальными
      секциями страницы (mx-auto max-w-6xl px-4). */
   .hero-nature {
-    @apply relative flex min-h-[360px] w-full items-center bg-cover bg-center py-10;
-    background-image:
-      linear-gradient(to bottom, rgba(10, 20, 10, 0.1), rgba(10, 25, 10, 0.5)),
-      url("/auth-bg.jpg");
+    @apply relative flex min-h-[360px] w-full items-center overflow-hidden bg-zinc-900 py-10;
+  }
+
+  /* Коллаж из фото активностей вместо одной картинки: сетка 3x2 на телефоне
+     и 6x2 на широких экранах, поверх — затемняющий градиент для читаемости
+     стеклянной карточки. */
+  .hero-collage {
+    @apply absolute inset-0 grid grid-cols-3 grid-rows-2 gap-0.5;
+  }
+  .hero-collage img {
+    @apply h-full w-full object-cover;
+  }
+  .hero-collage img:nth-child(n + 7) {
+    @apply hidden sm:block;
+  }
+  @media (min-width: 640px) {
+    .hero-collage {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+  .hero-collage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(10, 20, 10, 0.72), rgba(10, 25, 10, 0.25));
   }
 
   .hero-glass {

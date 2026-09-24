@@ -6,6 +6,10 @@ import { ServiceCard } from "@/components/ServiceCard";
 import { ServiceMap } from "@/components/ServiceMap";
 import type { CategoryCarousel as CategoryCarouselData, Service, ServiceMapMarker } from "@/lib/api";
 
+// Тематические фото активностей для коллажа в шапке главной (по одному на
+// направление); авторы и лицензии — на странице /credits.
+const HERO_PHOTOS = ["03", "06", "13", "21", "26", "37", "09", "31", "19", "10", "36", "07"];
+
 export function HomeClient({
   services,
   markers,
@@ -18,7 +22,13 @@ export function HomeClient({
   return (
     <main className="flex flex-1 flex-col">
       <div className="hero-nature">
-        <div className="mx-auto w-full max-w-6xl px-4">
+        <div className="hero-collage" aria-hidden="true">
+          {HERO_PHOTOS.map((name) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={name} src={`/hero/${name}.jpg`} alt="" loading="eager" />
+          ))}
+        </div>
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4">
           <div className="hero-glass">
             <h1 className="text-2xl font-bold sm:text-3xl">Навыки и активности рядом с вами</h1>
             <p className="mt-2 text-sm text-white/85 sm:text-base">
@@ -76,6 +86,12 @@ export function HomeClient({
           </span>
         </Link>
       </div>
+
+      <p className="pb-6 text-center text-xs text-zinc-400">
+        <Link href="/credits" className="hover:underline">
+          Источники фото
+        </Link>
+      </p>
     </main>
   );
 }

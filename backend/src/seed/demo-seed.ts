@@ -3,14 +3,19 @@
 //   SEED_DEMO_PASSWORD=... npm run seed:demo
 //
 // Идемпотентен: существующих продавцов и услуги (по названию у продавца)
-// не дублирует. Фото берёт из frontend/public/seed-images и кладёт в MinIO
+// не дублирует. Фото берёт из frontend/public/demo-photos/NN.jpg и кладёт в MinIO
 // тем же ключом, что и обычная загрузка (services/<id>/<uuid>.jpg).
+// Заменить фото у уже созданных карточек: npm run seed:demo -- --refresh-photos
 // Удалить всё демо: npm run seed:demo -- --remove
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import * as bcrypt from 'bcryptjs';
 import { config } from 'dotenv';
 import { randomUUID } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Category } from '../categories/category.entity';
 import { AppDataSource } from '../config/data-source';
@@ -31,7 +36,7 @@ import { DEMO_CARDS, DEMO_SELLERS } from './demo-data';
 config();
 
 const DEMO_EMAIL_DOMAIN = 'demo.hobbyhub.ru';
-const IMAGES_DIR = join(__dirname, '../../../frontend/public/seed-images');
+const IMAGES_DIR = join(__dirname, '../../../frontend/public/demo-photos');
 
 async function geocode(address: string): Promise<GeoPoint | null> {
   const apiKey = process.env.YANDEX_GEOCODER_API_KEY;
@@ -95,13 +100,6 @@ async function main(): Promise<void> {
   }
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const files = readdirSync(IMAGES_DIR)
-    .filter((f) => f.endsWith('.jpg'))
-    .sort();
-  if (files.length < 40) {
-    throw new Error(`В ${IMAGES_DIR} ожидалось 40 фото, найдено ${files.length}`);
-  }
-
   const s3 = new S3Client({
     endpoint: process.env.S3_ENDPOINT,
     region: process.env.S3_REGION ?? 'us-east-1',
@@ -118,6 +116,31 @@ async function main(): Promise<void> {
   const services = AppDataSource.getRepository(Service);
   const categories = await AppDataSource.getRepository(Category).find();
   const schedules = AppDataSource.getRepository(Schedule);
+
+  const imagesRepo = AppDataSource.getRepository(ServiceImage);
+  const refresh = process.argv.includes('--refresh-photos');
+
+  // Кладёт фото карточки в MinIO и заменяет ею все прежние картинки услуги.
+  async function replaceImage(serviceId: string, n: number): Promise<void> {
+    const old = await imagesRepo.find({ where: { serviceId } });
+    for (const img of old) {
+      const key = img.url.slice(publicUrl.length + 1);
+      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    }
+    await imagesRepo.delete({ serviceId });
+    const key = `services/${serviceId}/${randomUUID()}.jpg`;
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: readFileSync(join(IMAGES_DIR, `${String(n).padStart(2, '0')}.jpg`)),
+        ContentType: 'image/jpeg',
+      }),
+    );
+    await imagesRepo.save(
+      imagesRepo.create({ serviceId, url: `${publicUrl}/${key}`, sortOrder: 0 }),
+    );
+  }
 
   const sellerIds = new Map<string, string>();
   for (const seller of DEMO_SELLERS) {
@@ -159,8 +182,16 @@ async function main(): Promise<void> {
 
   for (const card of DEMO_CARDS) {
     const sellerId = sellerIds.get(card.seller)!;
-    if (await services.findOne({ where: { sellerId, title: card.title } })) {
-      console.log(`= №${card.n} уже есть`);
+    const existing = await services.findOne({
+      where: { sellerId, title: card.title },
+    });
+    if (existing) {
+      if (refresh) {
+        await replaceImage(existing.id, card.n);
+        console.log(`~ №${card.n} фото заменено`);
+      } else {
+        console.log(`= №${card.n} уже есть`);
+      }
       continue;
     }
     const category = categories.find((c) => c.slug === card.category);
@@ -190,26 +221,7 @@ async function main(): Promise<void> {
       }),
     );
 
-    const images: ServiceImage[] = [];
-    for (const [i, num] of card.photos.entries()) {
-      const key = `services/${service.id}/${randomUUID()}.jpg`;
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucket,
-          Key: key,
-          Body: readFileSync(join(IMAGES_DIR, files[num - 1])),
-          ContentType: 'image/jpeg',
-        }),
-      );
-      images.push(
-        AppDataSource.getRepository(ServiceImage).create({
-          serviceId: service.id,
-          url: `${publicUrl}/${key}`,
-          sortOrder: i,
-        }),
-      );
-    }
-    await AppDataSource.getRepository(ServiceImage).save(images);
+    await replaceImage(service.id, card.n);
     console.log(`+ №${card.n} ${card.title}`);
   }
 
