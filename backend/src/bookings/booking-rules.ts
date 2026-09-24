@@ -1,3 +1,5 @@
+import { BookingStatus } from './booking.entity';
+
 // Общие бизнес-правила бронирования — используются и в BookingsService
 // (создание/автоотклонение брони), и в ScheduleService (расчёт доступных
 // слотов), поэтому вынесены сюда, чтобы значения не расходились между модулями.
@@ -20,3 +22,13 @@ export const CONFIRMATION_TIMEOUT_FRACTION = 0.5;
 // ConfigService, здесь только запасное значение и для dev, и на случай
 // отсутствия переменной окружения.
 export const DEFAULT_PAYMENT_TIMEOUT_MINUTES = 30;
+
+// Статусы, в которых бронь занимает слот. Раньше учитывались только
+// PENDING/CONFIRMED, поэтому слот с заказом «ожидает оплаты» или «оплачен»
+// снова показывался свободным и на него можно было записать второго клиента.
+export const SLOT_HOLDING_STATUSES = [
+  BookingStatus.PENDING,
+  BookingStatus.CONFIRMED,
+  BookingStatus.AWAITING_PAYMENT,
+  BookingStatus.PAID,
+];

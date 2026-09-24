@@ -231,7 +231,7 @@ export default function IncomingOrdersPage() {
                     </button>
                   </>
                 )}
-                {booking.status === "awaiting_payment" && (
+                {(booking.status === "awaiting_payment" || booking.status === "confirmed") && (
                   <button
                     onClick={() => handleCancel(booking.id)}
                     className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
@@ -239,13 +239,13 @@ export default function IncomingOrdersPage() {
                     Отменить
                   </button>
                 )}
-                {booking.status === "paid" && booking.proposedDate && (
+                {(booking.status === "paid" || booking.status === "confirmed") && booking.proposedDate && (
                   <span className="text-sm text-zinc-500">
                     Предложен перенос на {booking.proposedDate}{" "}
                     {booking.proposedStartTime?.slice(0, 5)} — ждём подтверждения покупателя
                   </span>
                 )}
-                {booking.status === "paid" && !booking.proposedDate && (
+                {(booking.status === "paid" || booking.status === "confirmed") && !booking.proposedDate && (
                   <>
                     {reschedulingId === booking.id ? (
                       <>

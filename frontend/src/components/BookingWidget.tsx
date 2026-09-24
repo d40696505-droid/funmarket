@@ -239,6 +239,12 @@ export function BookingWidget({
       >
         {submitting ? "Отправляем…" : isRequestMode ? "Отправить запрос" : "Забронировать"}
       </button>
+      {process.env.NEXT_PUBLIC_PAYMENTS_DISABLED === "true" && (
+        <p className="text-xs text-zinc-500">
+          Онлайн-оплаты пока нет: бронь считается состоявшейся после подтверждения продавцом,
+          расчёт — напрямую с ним.
+        </p>
+      )}
     </form>
   );
 }

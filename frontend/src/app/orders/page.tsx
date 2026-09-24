@@ -21,6 +21,8 @@ import { STATUS_COLOR, STATUS_LABEL } from "@/lib/booking-status";
 import { useAuth } from "@/lib/auth-context";
 
 const MAX_REVIEW_PHOTOS = 3;
+// Временно: оплаты на платформе нет, пока не решены юридические вопросы.
+const PAYMENTS_DISABLED = process.env.NEXT_PUBLIC_PAYMENTS_DISABLED === "true";
 
 export default function MyOrdersPage() {
   const { user, loading: authLoading } = useAuth();
@@ -244,12 +246,14 @@ export default function MyOrdersPage() {
 
                 {booking.status === "awaiting_payment" && (
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handlePay(booking.id)}
-                      className="btn-primary self-start px-4 py-2 text-sm"
-                    >
-                      Оплатить
-                    </button>
+                    {!PAYMENTS_DISABLED && (
+                      <button
+                        onClick={() => handlePay(booking.id)}
+                        className="btn-primary self-start px-4 py-2 text-sm"
+                      >
+                        Оплатить
+                      </button>
+                    )}
                     <button
                       onClick={() => handleCancel(booking.id)}
                       className="self-start rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
@@ -259,7 +263,7 @@ export default function MyOrdersPage() {
                   </div>
                 )}
 
-                {booking.status === "paid" && booking.proposedDate && (
+                {(booking.status === "paid" || booking.status === "confirmed") && booking.proposedDate && (
                   <div className="flex flex-col items-start gap-2 rounded-lg bg-amber-50 p-3 dark:bg-amber-950">
                     <p className="text-sm text-amber-800 dark:text-amber-200">
                       Продавец предлагает перенести заказ на{" "}
@@ -267,7 +271,7 @@ export default function MyOrdersPage() {
                         {booking.proposedDate} {booking.proposedStartTime?.slice(0, 5)}
                       </span>{" "}
                       (сейчас {booking.bookingDate} {booking.startTime.slice(0, 5)}). Если новое
-                      время не подходит — заказ можно только отменить целиком, с возвратом денег.
+                      время не подходит — заказ можно только отменить целиком{booking.status === "paid" ? ", с возвратом денег" : ""}.
                     </p>
                     <div className="flex gap-2">
                       <button
@@ -283,6 +287,20 @@ export default function MyOrdersPage() {
                         Отклонить и отменить заказ
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {booking.status === "confirmed" && !booking.proposedDate && (
+                  <div className="flex flex-col items-start gap-2">
+                    <span className="text-sm text-zinc-500">
+                      Бронь подтверждена. Оплата — напрямую продавцу, детали можно уточнить в чате.
+                    </span>
+                    <button
+                      onClick={() => handleCancel(booking.id)}
+                      className="self-start rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                    >
+                      Отменить
+                    </button>
                   </div>
                 )}
 

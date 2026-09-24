@@ -6,8 +6,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import dayjs from 'dayjs';
 import { In, Repository } from 'typeorm';
-import { MIN_LEAD_TIME_HOURS } from '../bookings/booking-rules';
-import { Booking, BookingStatus } from '../bookings/booking.entity';
+import {
+  MIN_LEAD_TIME_HOURS,
+  SLOT_HOLDING_STATUSES,
+} from '../bookings/booking-rules';
+import { Booking } from '../bookings/booking.entity';
 import { Service, ServiceStatus } from '../services/service.entity';
 import { CreateExceptionDto } from './dto/create-exception.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -165,7 +168,7 @@ export class ScheduleService {
       where: {
         sellerId,
         bookingDate: date,
-        status: In([BookingStatus.PENDING, BookingStatus.CONFIRMED]),
+        status: In(SLOT_HOLDING_STATUSES),
       },
     });
 

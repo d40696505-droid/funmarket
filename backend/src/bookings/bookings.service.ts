@@ -29,6 +29,7 @@ import {
   CONFIRMATION_TIMEOUT_HOURS_MAX,
   DEFAULT_PAYMENT_TIMEOUT_MINUTES,
   MIN_LEAD_TIME_HOURS,
+  SLOT_HOLDING_STATUSES,
 } from './booking-rules';
 import { Booking, BookingStatus } from './booking.entity';
 import { ConfirmBookingDto } from './dto/confirm-booking.dto';
@@ -66,6 +67,15 @@ export class BookingsService {
         DEFAULT_PAYMENT_TIMEOUT_MINUTES,
       ),
     );
+  }
+
+  // Временный режим на период, пока не решены юридические вопросы с приёмом
+  // платежей (docs/release-plan.md): оплаты на платформе нет, бронь считается
+  // состоявшейся сразу после подтверждения продавцом (статус CONFIRMED), а
+  // расчёт стороны ведут между собой. Снимается переменной окружения
+  // PAYMENTS_DISABLED — вся платёжная логика ниже осталась нетронутой.
+  private get paymentsDisabled(): boolean {
+    return this.configService.get<string>('PAYMENTS_DISABLED') === 'true';
   }
 
   // Дедлайн подтверждения — минимум из фиксированного максимума и доли
@@ -193,7 +203,7 @@ export class BookingsService {
               sellerId: service.sellerId,
               bookingDate: dto.date,
               startTime: dto.startTime,
-              status: In([BookingStatus.PENDING, BookingStatus.CONFIRMED]),
+              status: In(SLOT_HOLDING_STATUSES),
             },
           });
           const blockedByOtherService = activeBookings.some(
@@ -294,6 +304,24 @@ export class BookingsService {
       }
       booking.totalAmount = dto.fixedAmount;
     }
+    if (this.paymentsDisabled) {
+      booking.status = BookingStatus.CONFIRMED;
+      const saved = await this.bookingsRepository.save(booking);
+      await this.notificationsService.notify(
+        booking.buyer,
+        NotificationType.BOOKING_CONFIRMED,
+        'Бронирование подтверждено',
+        `Продавец подтвердил бронирование на ${booking.bookingDate} ${booking.startTime}. Оплата и детали — напрямую с продавцом, вопросы можно задать в чате`,
+        { bookingId: booking.id },
+      );
+      await this.notifyChat(
+        booking.buyerId,
+        booking.sellerId,
+        booking.id,
+        `Заказ подтверждён продавцом. Дата: ${booking.bookingDate} ${booking.startTime}. Оплата — напрямую продавцу.`,
+      );
+      return saved;
+    }
     booking.status = BookingStatus.AWAITING_PAYMENT;
     booking.paymentDeadline = dayjs()
       .add(this.paymentTimeoutMinutes, 'minute')
@@ -352,7 +380,8 @@ export class BookingsService {
     }
     if (
       booking.status !== BookingStatus.PENDING &&
-      booking.status !== BookingStatus.AWAITING_PAYMENT
+      booking.status !== BookingStatus.AWAITING_PAYMENT &&
+      booking.status !== BookingStatus.CONFIRMED
     ) {
       throw new BadRequestException(
         'Отменить можно только заказ в статусе "Ожидает подтверждения" или "Ожидает оплаты". ' +
@@ -393,9 +422,12 @@ export class BookingsService {
     if (booking.sellerId !== sellerId) {
       throw new ForbiddenException('Нет доступа к этому заказу');
     }
-    if (booking.status !== BookingStatus.PAID) {
+    if (
+      booking.status !== BookingStatus.PAID &&
+      booking.status !== BookingStatus.CONFIRMED
+    ) {
       throw new BadRequestException(
-        'Перенести можно только оплаченный заказ',
+        'Перенести можно только подтверждённый или оплаченный заказ',
       );
     }
 
@@ -507,6 +539,15 @@ export class BookingsService {
     booking.proposedEndTime = null;
     await this.bookingsRepository.save(booking);
 
+    // Без оплаты возвращать нечего — просто отменяем заказ.
+    if (booking.status === BookingStatus.CONFIRMED) {
+      return this.cancel(
+        id,
+        buyerId,
+        'Покупатель отклонил перенос — заказ отменён.',
+      );
+    }
+
     return this.paymentsService.refundBooking(
       id,
       buyerId,
@@ -590,6 +631,33 @@ export class BookingsService {
         booking.sellerId,
         booking.id,
         AUTO_CANCEL_UNPAID_REASON,
+      );
+    }
+  }
+
+  // В режиме без оплаты (PAYMENTS_DISABLED) эскроу-релиз не переводит заказ
+  // в COMPLETED, поэтому подтверждённые брони закрываем по времени — иначе
+  // покупатель никогда не сможет оставить отзыв.
+  @Cron('*/10 * * * *')
+  async autoCompleteConfirmedBookings(): Promise<void> {
+    if (!this.paymentsDisabled) return;
+    const confirmed = await this.bookingsRepository.find({
+      where: { status: BookingStatus.CONFIRMED },
+      relations: { buyer: true, service: true },
+    });
+    const now = dayjs();
+    for (const booking of confirmed) {
+      if (now.isBefore(dayjs(`${booking.bookingDate}T${booking.endTime}`))) {
+        continue;
+      }
+      booking.status = BookingStatus.COMPLETED;
+      await this.bookingsRepository.save(booking);
+      await this.notificationsService.notify(
+        booking.buyer,
+        NotificationType.BOOKING_COMPLETED,
+        'Как всё прошло?',
+        `Заказ «${booking.service.title}» завершён — оставьте отзыв о продавце в разделе «Мои заказы»`,
+        { bookingId: booking.id },
       );
     }
   }

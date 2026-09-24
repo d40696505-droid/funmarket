@@ -114,6 +114,12 @@ export class User {
   @Column({ default: false })
   isSupport: boolean;
 
+  // Демо-продавец с наполненными вручную карточками: все его уведомления
+  // (почта/push) перенаправляются на DEMO_NOTIFY_EMAIL, а не на выдуманный
+  // адрес, см. NotificationsService.notify.
+  @Column({ default: false })
+  isDemo: boolean;
+
   // Верификация продавца перед первым выводом средств (amendment #4) —
   // не блокирует публикацию услуг, гейтит только релиз эскроу.
   @Column({ default: false })
