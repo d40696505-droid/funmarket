@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>HobbyHub — презентация для инвестора</title>
+<style>
+@page { size: 1280px 720px; margin: 0 }
+:root { --ink:#161616; --mut:#5b6068; --acc:#f5c518; --accd:#b88a00; --grn:#1f7a4d; --bg:#fafaf7; --card:#fff; --line:#e6e4dc; }
+* { box-sizing:border-box; margin:0; padding:0 }
+body { font-family:"Helvetica Neue",FreeSans,"DejaVu Sans",Arial,sans-serif; color:var(--ink); background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact }
+.s { width:1280px; height:720px; padding:56px 72px 48px; position:relative; overflow:hidden; page-break-after:always; break-after:page; background:var(--bg) }
+.s.dark { background:#141a14; color:#fff }
+.tag { font-size:15px; letter-spacing:.14em; text-transform:uppercase; color:var(--accd); font-weight:700; margin-bottom:14px }
+.dark .tag { color:var(--acc) }
+h1 { font-size:64px; line-height:1.04; font-weight:800; letter-spacing:-.02em }
+h2 { font-size:40px; line-height:1.12; font-weight:800; letter-spacing:-.01em; max-width:1000px }
+h3 { font-size:27px; font-weight:700; margin-bottom:10px }
+p, li { font-size:23px; line-height:1.45; color:#2b2f33 }
+.dark p, .dark li { color:#e5e7e2 }
+.mut { color:var(--mut) } .sm { font-size:15px } .xs { font-size:14px; color:var(--mut) }
+.num { position:absolute; right:48px; bottom:28px; font-size:13px; color:#9a9a92 }
+.logo { position:absolute; left:72px; bottom:28px; font-size:13px; color:#9a9a92; font-weight:700 }
+.grid { display:grid; gap:22px } .g2 { grid-template-columns:1fr 1fr } .g3 { grid-template-columns:repeat(3,1fr) } .g4 { grid-template-columns:repeat(4,1fr) }
+.card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:28px 30px }
+.card.y { background:#fff8d9; border-color:#f0dd8a }
+.big { font-size:62px; font-weight:800; letter-spacing:-.02em; line-height:1 }
+.pill { display:inline-block; background:var(--acc); color:#161616; border-radius:99px; padding:6px 16px; font-weight:700; font-size:16px }
+.pill.g { background:var(--grn); color:#fff }
+ul { list-style:none } li { padding-left:26px; position:relative; margin:9px 0 } li::before { content:""; position:absolute; left:0; top:11px; width:10px; height:10px; border-radius:50%; background:var(--acc) }
+.shot { border-radius:14px; box-shadow:0 18px 50px rgba(0,0,0,.22); border:1px solid #d9d7cf; display:block }
+.phone { width:250px; border-radius:34px; border:9px solid #111; box-shadow:0 18px 50px rgba(0,0,0,.3); display:block }
+table { border-collapse:collapse; width:100%; font-size:22px } th,td { padding:16px 16px; border-bottom:1px solid var(--line); text-align:left } th { font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut) }
+td.c, th.c { text-align:center } tr.hl td { background:#fff8d9; font-weight:700 }
+.step { display:flex; gap:14px; align-items:flex-start; margin:20px 0 } .step b { flex:0 0 38px; height:38px; border-radius:50%; background:var(--acc); display:flex; align-items:center; justify-content:center; font-size:18px }
+.bar { height:26px; border-radius:8px; background:var(--acc) }
+.s h2 + .grid, .s h2 + table, .s h2 + div { margin-top:52px !important }
+.s.dark h2 + .grid { margin-top:40px !important }
+</style></head><body>
+
+<!-- 1. Титул -->
+<section class="s dark" style="background:linear-gradient(120deg,rgba(10,20,10,.94) 30%,rgba(10,20,10,.5)),url(../../frontend/public/hero/13.jpg) center/cover">
+  <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);opacity:.95;z-index:0">
+    <img src="../../frontend/public/hero/03.jpg" style="width:100%;height:360px;object-fit:cover;display:block"><img src="../../frontend/public/hero/06.jpg" style="width:100%;height:360px;object-fit:cover;display:block"><img src="../../frontend/public/hero/21.jpg" style="width:100%;height:360px;object-fit:cover;display:block"><img src="../../frontend/public/hero/26.jpg" style="width:100%;height:360px;object-fit:cover;display:block">
+    <img src="../../frontend/public/hero/37.jpg" style="width:100%;height:360px;object-fit:cover;display:block"><img src="../../frontend/public/hero/09.jpg" style="width:100%;height:360px;object-fit:cover;display:block"><img src="../../frontend/public/hero/31.jpg" style="width:100%;height:360px;object-fit:cover;display:block"><img src="../../frontend/public/hero/19.jpg" style="width:100%;height:360px;object-fit:cover;display:block">
+  </div>
+  <div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(14,22,14,.92) 30%,rgba(14,22,14,.15))"></div>
+  <div style="position:relative;z-index:2;margin-top:150px">
+    <div class="tag">Инвестиционное предложение · сид</div>
+    <h1>HobbyHub</h1>
+    <p style="font-size:30px;margin-top:18px;max-width:780px;color:#fff">Маркетплейс активностей и навыков рядом с вами: рыбалка, вело, походы, мастер-классы, фото, экскурсии</p>
+    <p style="margin-top:34px;color:#f5c518;font-weight:700;font-size:22px">hobbyhub.ru · работающий продукт, Москва и Подмосковье</p>
+  </div>
+</section>
+
+<!-- 2. Проблема -->
+<section class="s"><div class="tag">Проблема</div>
+<h2>Хобби и активности покупают вслепую: через чаты, соцсети и «скинь в личку»</h2>
+<div class="grid g3" style="margin-top:44px">
+  <div class="card"><h3>Покупателю</h3><p>Предложения разбросаны по группам и мессенджерам. Не видно цены, свободных дат и того, можно ли доверять организатору.</p></div>
+  <div class="card"><h3>Организатору</h3><p>Инструктор, гид или мастер тратит время на переписку, теряет заявки и не может показать свободные слоты и отзывы в одном месте.</p></div>
+  <div class="card"><h3>Обоим</h3><p>Нет единой записи, напоминаний и понятных правил отмены и переноса. Спорные ситуации решаются на честном слове.</p></div>
+</div>
+<p class="mut" style="margin-top:34px">Универсальные доски объявлений не решают этого: нет расписания, онлайн-записи и рейтинга именно организатора активности.</p>
+<div class="logo">HobbyHub</div><div class="num">2</div></section>
+
+<!-- 3. Решение -->
+<section class="s"><div class="tag">Решение</div>
+<h2>Карточка активности с ценой, свободными слотами, картой и отзывами — запись за минуту</h2>
+<div class="grid g2" style="margin-top:36px;align-items:center">
+  <div>
+    <ul>
+      <li><b>Каталог и карта.</b> Услуги по категориям и на карте Яндекса, фильтры по городу и цене.</li>
+      <li><b>Онлайн-запись по слотам.</b> Расписание продавца, вместимость группы, «Можно сегодня».</li>
+      <li><b>Чат и уведомления.</b> Почта и push при брони, подтверждении, переносе.</li>
+      <li><b>Доверие.</b> Отзывы после завершённой услуги, подтверждённая почта, модерация карточек.</li>
+      <li><b>Подписки на продавцов</b> и избранное — возвращают клиента.</li>
+    </ul>
+  </div>
+  <img class="shot" src="img/cards.png" style="width:100%;height:340px;object-fit:cover;object-position:top">
+</div>
+<div class="logo">HobbyHub</div><div class="num">3</div></section>
+
+<!-- 4. Продукт -->
+<section class="s"><div class="tag">Продукт · уже работает</div>
+<h2>Реальные экраны сервиса на hobbyhub.ru</h2>
+<div style="display:flex;gap:24px;margin-top:34px;align-items:flex-start">
+  <div style="flex:1.25"><img class="shot" src="img/service.png" style="width:100%;height:auto"><p class="xs" style="margin-top:8px">Страница услуги: свободные слоты и запись</p></div>
+  <div style="flex:1.25"><img class="shot" src="img/map.png" style="width:100%;height:auto"><p class="xs" style="margin-top:8px">Карта предложений по Москве и области</p></div>
+  <div><img class="phone" src="img/mobile.png" style="width:215px;height:auto;max-height:470px;object-fit:cover;object-position:top"><p class="xs" style="margin-top:8px;text-align:center">Мобильная версия</p></div>
+</div>
+<div class="logo">HobbyHub</div><div class="num">4</div></section>
+
+<!-- 5. Как работает -->
+<section class="s"><div class="tag">Как это работает</div>
+<h2>Две стороны, один понятный путь</h2>
+<div class="grid g2" style="margin-top:36px">
+  <div class="card y"><h3>Покупатель</h3>
+    <div class="step"><b>1</b><p>Находит активность в каталоге или на карте</p></div>
+    <div class="step"><b>2</b><p>Выбирает дату и свободный слот</p></div>
+    <div class="step"><b>3</b><p>Продавец подтверждает — приходит уведомление</p></div>
+    <div class="step"><b>4</b><p>После занятия оставляет отзыв</p></div></div>
+  <div class="card"><h3>Продавец</h3>
+    <div class="step"><b>1</b><p>Регистрируется и создаёт карточку с фото и ценой</p></div>
+    <div class="step"><b>2</b><p>Модерация, публикация, задаёт недельное расписание</p></div>
+    <div class="step"><b>3</b><p>Получает заявки, подтверждает или предлагает перенос</p></div>
+    <div class="step"><b>4</b><p>Растёт рейтинг и число подписчиков</p></div></div>
+</div>
+<div class="logo">HobbyHub</div><div class="num">5</div></section>
+
+<!-- 6. Рынок -->
+<section class="s"><div class="tag">Рынок</div>
+<h2>Внутренний туризм и досуг в России растут четвёртый год подряд</h2>
+<div class="grid g3" style="margin-top:30px !important">
+  <div class="card"><div class="big">173,9 млн</div><p style="margin-top:10px">поездок по России в 2025 году</p></div>
+  <div class="card"><div class="big">+7,4%</div><p style="margin-top:10px">рост числа поездок за год</p></div>
+  <div class="card"><div class="big">+43%</div><p style="margin-top:10px">к уровню 2021 года</p></div>
+</div>
+<div class="grid g2" style="margin-top:18px">
+  <div class="card"><h3>Куда идём</h3><p>Старт — Москва и Подмосковье: крупнейший рынок с плотным спросом на активности выходного дня. Затем города-миллионники и туристические регионы.</p></div>
+  <div class="card"><h3>Кто покупает</h3><p>Горожане, которые ищут занятие на выходные, впечатление в подарок или способ освоить новое хобби.</p></div>
+</div>
+<p class="xs" style="margin-top:8px">Источник: СберАналитика (по публикациям «Коммерсантъ», 2025). Объём рынка «активностей и навыков» отдельно не измеряется — оценка будет получена в пилоте.</p>
+<div class="logo">HobbyHub</div><div class="num">6</div></section>
+
+<!-- 7. Бизнес-модель -->
+<section class="s"><div class="tag">Бизнес-модель</div>
+<h2>Комиссия с каждой состоявшейся брони</h2>
+<div class="grid g2" style="margin-top:34px">
+  <div class="card y"><div class="big">10%</div><p style="margin-top:10px">комиссия платформы с брони. Уже реализована в продукте, настраивается</p></div>
+  <div class="card"><h3>Дополнительные потоки (после запуска платежей)</h3>
+    <ul><li>Продвижение карточек в каталоге и на карте</li><li>Подписка для профессиональных организаторов (расширенная аналитика, CRM)</li><li>Партнёрские предложения: аренда снаряжения, страховка</li></ul></div>
+</div>
+<p style="margin-top:26px" class="mut">Модель агентская: платформа принимает оплату, держит её до проведения услуги и переводит продавцу за вычетом комиссии. Продавцы — самозанятые и организаторы.</p>
+<div class="logo">HobbyHub</div><div class="num">7</div></section>
+
+<!-- 8. Юнит-экономика -->
+<section class="s"><div class="tag">Экономика · гипотезы для проверки</div>
+<h2>Иллюстративная модель: что даёт масштаб при комиссии 10%</h2>
+<table style="margin-top:30px"><tr><th></th><th class="c">Через 6 мес.</th><th class="c">Через 12 мес.</th><th class="c">Через 18 мес.</th></tr>
+<tr><td>Активных продавцов</td><td class="c">100</td><td class="c">300</td><td class="c">800</td></tr>
+<tr><td>Броней в месяц</td><td class="c">600</td><td class="c">3 000</td><td class="c">12 000</td></tr>
+<tr><td>Оборот (GMV) в месяц, ₽</td><td class="c">1,8 млн</td><td class="c">9 млн</td><td class="c">36 млн</td></tr>
+<tr class="hl"><td>Выручка платформы в месяц, ₽</td><td class="c">180 тыс.</td><td class="c">900 тыс.</td><td class="c">3,6 млн</td></tr></table>
+<p class="xs" style="margin-top:16px">Допущения: средний чек 3 000 ₽ (в каталоге сейчас от 700 до 9 000 ₽), комиссия 10%. Это не прогноз, а модель для обсуждения; реальные показатели зададим по итогам пилота в Москве.</p>
+<div class="logo">HobbyHub</div><div class="num">8</div></section>
+
+<!-- 9. Конкуренты -->
+<section class="s"><div class="tag">Конкуренты</div>
+<h2>Мы объединяем то, что сегодня разрознено</h2>
+<table style="margin-top:28px"><tr><th>Решение</th><th class="c">Активности от частных мастеров</th><th class="c">Онлайн-запись по слотам</th><th class="c">Карта</th><th class="c">Рейтинг организатора</th></tr>
+<tr><td>Соцсети и чаты</td><td class="c">●</td><td class="c">○</td><td class="c">○</td><td class="c">◐</td></tr>
+<tr><td>Доски объявлений</td><td class="c">◐</td><td class="c">○</td><td class="c">◐</td><td class="c">◐</td></tr>
+<tr><td>Экскурсионные маркетплейсы</td><td class="c">○</td><td class="c">●</td><td class="c">◐</td><td class="c">●</td></tr>
+<tr class="hl"><td>HobbyHub</td><td class="c">●</td><td class="c">●</td><td class="c">●</td><td class="c">●</td></tr></table>
+<p class="xs" style="margin-top:14px">● есть · ◐ частично · ○ нет. Обобщённая оценка по типам решений, не по конкретным компаниям.</p>
+<p style="margin-top:20px">Наш фокус — <b>широкие активности и навыки</b> (рыбалка, вело, мото, ремёсла, фото), а не только экскурсии или разовые услуги.</p>
+<div class="logo">HobbyHub</div><div class="num">9</div></section>
+
+<!-- 10. Статус -->
+<section class="s"><div class="tag">Где мы сейчас</div>
+<h2>Продукт запущен. Дальше — первые реальные продавцы и платежи</h2>
+<div class="grid g2" style="margin-top:32px">
+  <div class="card"><h3 style="color:var(--grn)">Сделано</h3>
+    <ul><li>Сайт hobbyhub.ru: каталог, карта, запись, чаты, отзывы</li><li>Уведомления на почту и push, подписки, избранное</li><li>Перенос и отмена броней, модерация, админ-панель</li><li>Аудит безопасности, резервные копии, свой сервер в РФ</li><li>Демо-каталог: 40 услуг в Москве и области</li></ul></div>
+  <div class="card y"><h3>Честно о стадии</h3>
+    <ul><li>Реальных продавцов и продаж пока нет — идёт запуск пилота</li><li>Демо-услуги показывают модель, они не являются коммерческими предложениями</li><li>Приём платежей ждёт юридической схемы (работа с юристом)</li></ul></div>
+</div>
+<div class="logo">HobbyHub</div><div class="num">10</div></section>
+
+<!-- 11. GTM -->
+<section class="s"><div class="tag">Выход на рынок</div>
+<h2>Сначала предложение, потом спрос: набираем продавцов в Москве и области</h2>
+<div class="grid g3" style="margin-top:30px !important">
+  <div class="card"><h3>1. Продавцы</h3><p>Клубы, инструкторы, гиды, мастера. Личные договорённости, бесплатный старт, помощь с карточкой и фото.</p></div>
+  <div class="card"><h3>2. Спрос</h3><p>Поисковый трафик по «что делать на выходных», сообщества любителей активностей, партнёрства с блогерами и клубами.</p></div>
+  <div class="card"><h3>3. Удержание</h3><p>Подписки на продавцов, «Можно сегодня», напоминания, отзывы и повторные брони.</p></div>
+</div>
+<div class="card y" style="margin-top:18px;padding:20px 28px"><h3>Цели пилота (3 месяца)</h3><p>50 реальных продавцов · 300 подтверждённых броней · доля повторных броней и NPS — как ключевые метрики для следующего раунда.</p></div>
+<div class="logo">HobbyHub</div><div class="num">11</div></section>
+
+<!-- 12. Roadmap -->
+<section class="s"><div class="tag">План на 12–18 месяцев</div>
+<h2>От пилота в Москве к нескольким регионам</h2>
+<div class="grid g4" style="margin-top:44px">
+  <div class="card"><div class="pill">0–3 мес.</div><p style="margin-top:14px">Юр. схема и приём платежей. Пилот: первые 50 продавцов.</p></div>
+  <div class="card"><div class="pill">3–6 мес.</div><p style="margin-top:14px">Эскроу-выплаты продавцам. Мобильное приложение (PWA). Рост в Москве и области.</p></div>
+  <div class="card"><div class="pill">6–12 мес.</div><p style="margin-top:14px">Второй регион (Санкт-Петербург). Кабинет аналитики продавца. Платное продвижение.</p></div>
+  <div class="card"><div class="pill">12–18 мес.</div><p style="margin-top:14px">Ещё 2–3 региона. Подписка для профи. Партнёрства (снаряжение, страхование).</p></div>
+</div>
+<div class="logo">HobbyHub</div><div class="num">12</div></section>
+
+<!-- 13. Использование средств -->
+<section class="s"><div class="tag">Использование средств · предложение</div>
+<h2>Раунд 10 млн ₽ на 18 месяцев <span class="mut" style="font-size:24px">(ориентир, диапазон 5–20 млн ₽)</span></h2>
+<div style="margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:34px">
+  <div>
+    <div style="margin:16px 0"><div style="display:flex;justify-content:space-between"><b>Продукт и разработка</b><b>35%</b></div><div class="bar" style="width:100%"></div></div>
+    <div style="margin:16px 0"><div style="display:flex;justify-content:space-between"><b>Привлечение продавцов и маркетинг</b><b>35%</b></div><div class="bar" style="width:100%"></div></div>
+    <div style="margin:16px 0"><div style="display:flex;justify-content:space-between"><b>Юристы, платежи, поддержка</b><b>15%</b></div><div class="bar" style="width:43%"></div></div>
+    <div style="margin:16px 0"><div style="display:flex;justify-content:space-between"><b>Резерв</b><b>15%</b></div><div class="bar" style="width:43%"></div></div>
+  </div>
+  <div class="card"><h3>Что получим</h3><ul><li>Работающие платежи и выплаты</li><li>Сотни продавцов и тысячи броней в Москве</li><li>Мобильное приложение</li><li>Готовность к раунду А и выходу в новые регионы</li></ul></div>
+</div>
+<p class="xs" style="margin-top:20px">Распределение — предварительное, уточняется с инвестором.</p>
+<div class="logo">HobbyHub</div><div class="num">13</div></section>
+
+<!-- 14. Команда -->
+<section class="s"><div class="tag">Команда</div>
+<h2>Основатель и план найма</h2>
+<div class="grid g2" style="margin-top:36px">
+  <div class="card y"><h3>[Имя Фамилия], основатель</h3><p>Продукт, стратегия и запуск. Самостоятельно построил и вывел в эксплуатацию платформу hobbyhub.ru: от идеи до работающего сервиса на собственной инфраструктуре.</p><p class="xs" style="margin-top:10px">[добавьте 1–2 факта об опыте]</p></div>
+  <div class="card"><h3>Кого нанимаем на раунд</h3><ul><li>Руководитель по развитию продавцов (BD)</li><li>Маркетолог по росту</li><li>Разработчик (мобильное приложение, платежи)</li><li>Юрист и поддержка на аутсорсе</li></ul></div>
+</div>
+<div class="logo">HobbyHub</div><div class="num">14</div></section>
+
+<!-- 15. Риски + ask -->
+<section class="s dark"><div class="tag">Риски и запрос</div>
+<h2 style="color:#fff">Главные риски известны и закрываются раундом</h2>
+<div class="grid g2" style="margin-top:28px">
+  <div>
+    <ul><li><b>Платежи и право.</b> Идёт проработка агентской схемы с юристом; до запуска брони подтверждаются без онлайн-оплаты.</li>
+    <li><b>Холодный старт.</b> Сначала предложение: закрываем работой с продавцами и демо-каталогом.</li>
+    <li><b>Обход платформы.</b> Гарантии, отзывы и подписки должны быть выгоднее личных договорённостей.</li>
+    <li><b>Сезонность.</b> Каталог всесезонный: мастер-классы, экскурсии, зимняя рыбалка.</li></ul>
+  </div>
+  <div class="card" style="background:#1f2a1f;border-color:#2f4a2f"><h3 style="color:#f5c518">Что просим</h3><p style="color:#fff;font-size:24px;line-height:1.35">10 млн ₽ на 18 месяцев (диапазон 5–20 млн ₽)</p>
+  <p style="margin-top:18px">Контакты: [Имя Фамилия]<br>[телефон] · [email]<br>hobbyhub.ru</p></div>
+</div>
+<div class="num" style="color:#888">15</div></section>
+</body></html>
