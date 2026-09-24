@@ -4,6 +4,9 @@ import { searchServices } from "@/lib/api";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3002";
 const MAX_PAGES = 10;
 
+// Иначе sitemap собирается один раз при сборке и не видит новых услуг.
+export const revalidate = 3600;
+
 async function loadAllServiceIds(): Promise<string[]> {
   const ids: string[] = [];
   for (let page = 1; page <= MAX_PAGES; page++) {
