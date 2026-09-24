@@ -72,9 +72,10 @@ async function remove(): Promise<void> {
     await AppDataSource.query(`DELETE FROM "bookings" WHERE "sellerId" = $1`, [
       user.id,
     ]);
-    await AppDataSource.query(`DELETE FROM "chats" WHERE "sellerId" = $1`, [
-      user.id,
-    ]).catch(() => undefined);
+    await AppDataSource.query(
+      `DELETE FROM "chats" WHERE "participant1Id" = $1 OR "participant2Id" = $1`,
+      [user.id],
+    );
     await users.delete({ id: user.id });
   }
   console.log(`Удалено демо-продавцов: ${demo.length}`);
