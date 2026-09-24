@@ -4,6 +4,7 @@ import { CategoriesModule } from '../categories/categories.module';
 import { JwtAuthModule } from '../auth/guards/jwt-auth.module';
 import { FollowsModule } from '../follows/follows.module';
 import { GeocodingModule } from '../geocoding/geocoding.module';
+import { ScheduleModule } from '../schedule/schedule.module';
 import { UsersModule } from '../users/users.module';
 import { ServiceImage } from './service-image.entity';
 import { Service } from './service.entity';
@@ -18,6 +19,7 @@ import { ServicesService } from './services.service';
     UsersModule,
     GeocodingModule,
     FollowsModule,
+    ScheduleModule,
   ],
   controllers: [ServicesController],
   providers: [ServicesService],

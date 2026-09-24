@@ -5,13 +5,17 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import dayjs from 'dayjs';
-import { In, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import {
   MIN_LEAD_TIME_HOURS,
   SLOT_HOLDING_STATUSES,
 } from '../bookings/booking-rules';
 import { Booking } from '../bookings/booking.entity';
-import { Service, ServiceStatus } from '../services/service.entity';
+import {
+  Service,
+  ServiceBookingMode,
+  ServiceStatus,
+} from '../services/service.entity';
 import { CreateExceptionDto } from './dto/create-exception.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import {
@@ -19,6 +23,9 @@ import {
   ScheduleExceptionType,
 } from './schedule-exception.entity';
 import { Schedule } from './schedule.entity';
+
+// Сколько дней вперёд искать ближайший слот для карточек.
+const NEXT_SLOT_LOOKAHEAD_DAYS = 14;
 
 export interface AvailableSlot {
   startTime: string;
@@ -129,10 +136,103 @@ export class ScheduleService {
     const scheduleEntries = await this.schedulesRepository.find({
       where: { sellerId, dayOfWeek, isActive: true },
     });
-
     const exceptions = await this.exceptionsRepository.find({
       where: { sellerId, date },
     });
+    const activeBookings = await this.bookingsRepository.find({
+      where: {
+        sellerId,
+        bookingDate: date,
+        status: In(SLOT_HOLDING_STATUSES),
+      },
+    });
+
+    return this.computeSlots(
+      service,
+      date,
+      scheduleEntries,
+      exceptions,
+      activeBookings,
+      dayjs().add(MIN_LEAD_TIME_HOURS, 'hour'),
+    );
+  }
+
+  // Ближайший свободный слот для каждой услуги списка (карточки в каталоге).
+  // Данные грузятся тремя запросами на весь список, а не по запросу на
+  // каждую услугу и день; сами слоты считаются тем же computeSlots, что и
+  // на странице услуги, поэтому не расходятся с реальной бронью.
+  async attachNextSlots<T extends Service>(services: T[]): Promise<T[]> {
+    const slotted = services.filter(
+      (s) => s.bookingMode === ServiceBookingMode.SLOTS,
+    );
+    if (slotted.length === 0) return services;
+
+    const sellerIds = [...new Set(slotted.map((s) => s.sellerId))];
+    const today = dayjs().startOf('day');
+    const from = today.format('YYYY-MM-DD');
+    const to = today.add(NEXT_SLOT_LOOKAHEAD_DAYS - 1, 'day').format('YYYY-MM-DD');
+
+    const [entries, exceptions, bookings] = await Promise.all([
+      this.schedulesRepository.find({
+        where: { sellerId: In(sellerIds), isActive: true },
+      }),
+      this.exceptionsRepository.find({
+        where: { sellerId: In(sellerIds), date: Between(from, to) },
+      }),
+      this.bookingsRepository.find({
+        where: {
+          sellerId: In(sellerIds),
+          bookingDate: Between(from, to),
+          status: In(SLOT_HOLDING_STATUSES),
+        },
+      }),
+    ]);
+
+    const minStart = dayjs().add(MIN_LEAD_TIME_HOURS, 'hour');
+    for (const service of slotted) {
+      service.nextSlot = null;
+      for (let d = 0; d < NEXT_SLOT_LOOKAHEAD_DAYS; d++) {
+        const day = today.add(d, 'day');
+        const date = day.format('YYYY-MM-DD');
+        const slots = this.computeSlots(
+          service,
+          date,
+          entries.filter(
+            (e) => e.sellerId === service.sellerId && e.dayOfWeek === day.day(),
+          ),
+          exceptions.filter(
+            (e) => e.sellerId === service.sellerId && e.date === date,
+          ),
+          bookings.filter(
+            (b) => b.sellerId === service.sellerId && b.bookingDate === date,
+          ),
+          minStart,
+        );
+        if (slots.length > 0) {
+          service.nextSlot = {
+            date,
+            startTime: slots[0].startTime,
+            endTime: slots[0].endTime,
+            isToday: d === 0,
+          };
+          break;
+        }
+      }
+    }
+    return services;
+  }
+
+  // Чистая часть расчёта слотов на одну дату: недельный график и разовые
+  // исключения/брони уже загружены вызывающим.
+  private computeSlots(
+    service: Service,
+    date: string,
+    scheduleEntries: Schedule[],
+    exceptions: ScheduleException[],
+    activeBookings: Booking[],
+    minStart: dayjs.Dayjs,
+  ): AvailableSlot[] {
+    const serviceId = service.id;
     const blocks = exceptions.filter(
       (e) => e.type === ScheduleExceptionType.BLOCK,
     );
@@ -164,16 +264,7 @@ export class ScheduleService {
       return [];
     }
 
-    const activeBookings = await this.bookingsRepository.find({
-      where: {
-        sellerId,
-        bookingDate: date,
-        status: In(SLOT_HOLDING_STATUSES),
-      },
-    });
-
     const durationMinutes = service.durationMinutes;
-    const minStart = dayjs().add(MIN_LEAD_TIME_HOURS, 'hour');
     const slotsByStart = new Map<string, AvailableSlot>();
 
     for (const window of windows) {

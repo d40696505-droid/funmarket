@@ -47,6 +47,14 @@ export enum ServiceBookingMode {
   REQUEST = 'request',
 }
 
+// Ближайший свободный слот — вычисляется на лету для карточек (не колонка БД).
+export interface NextSlot {
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string;
+  isToday: boolean;
+}
+
 @Entity('services')
 export class Service {
   @PrimaryGeneratedColumn('uuid')
@@ -150,6 +158,9 @@ export class Service {
   // Сколько раз услугу добавили в избранное — виден продавцу в «Мои услуги».
   @Column({ default: 0 })
   favoritesCount: number;
+
+  // Заполняется ScheduleService.attachNextSlots, не хранится.
+  nextSlot?: NextSlot | null;
 
   @OneToMany(() => ServiceImage, (image) => image.service, { cascade: true })
   images: ServiceImage[];

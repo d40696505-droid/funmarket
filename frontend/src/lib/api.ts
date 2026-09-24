@@ -298,6 +298,14 @@ export type ServiceLocationType = "address" | "mobile" | "online";
 export type ServiceStatus = "draft" | "moderation" | "active" | "inactive";
 export type ServiceBookingMode = "slots" | "request";
 
+// Ближайший свободный слот (считается на бэкенде для карточек в списках).
+export interface NextSlot {
+  date: string;
+  startTime: string;
+  endTime: string;
+  isToday: boolean;
+}
+
 export interface ServiceImage {
   id: string;
   url: string;
@@ -330,6 +338,7 @@ export interface Service {
   viewsCount: number;
   bookingsCount: number;
   favoritesCount: number;
+  nextSlot?: NextSlot | null;
   images: ServiceImage[];
   createdAt: string;
   updatedAt: string;

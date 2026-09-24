@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
+import { ScheduleService } from '../schedule/schedule.service';
 import { Service, ServiceStatus } from '../services/service.entity';
 import { toPublicService } from '../services/services.service';
 import { Favorite } from './favorite.entity';
@@ -14,6 +15,7 @@ export class FavoritesService {
     private readonly favoritesRepository: Repository<Favorite>,
     @InjectRepository(Service)
     private readonly servicesRepository: Repository<Service>,
+    private readonly scheduleService: ScheduleService,
   ) {}
 
   async add(userId: string, serviceId: string): Promise<Favorite> {
@@ -87,6 +89,7 @@ export class FavoritesService {
         ids: favorites.map((f) => f.serviceId),
       })
       .getMany();
+    await this.scheduleService.attachNextSlots(services);
 
     // Сохраняем порядок "недавно добавленные первыми" из favorites,
     // а не порядок, в котором Postgres вернул строки по IN (...).

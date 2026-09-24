@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, type MouseEvent } from "react";
-import { createChat, type Service } from "@/lib/api";
+import { createChat, type NextSlot, type Service } from "@/lib/api";
 import { AuthRequiredModal } from "@/components/AuthRequiredModal";
 import { useAuth } from "@/lib/auth-context";
 import { useFavorites } from "@/lib/favorites-context";
@@ -17,6 +17,24 @@ function formatPrice(service: Service): string {
     return `${Number(service.priceMin).toLocaleString("ru-RU")} ₽${unit}`;
   }
   return `от ${Number(service.priceMin).toLocaleString("ru-RU")} ₽${unit}`;
+}
+
+const MSK = "Europe/Moscow";
+
+// «сегодня в 18:00», «завтра в 10:00», «сб, 26 сен в 10:00» — день считаем по
+// Москве, как и слоты на бэкенде.
+function formatNextSlot(slot: NextSlot): string {
+  const time = slot.startTime.slice(0, 5);
+  if (slot.isToday) return `сегодня в ${time}`;
+  const dayKey = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: MSK });
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  if (slot.date === dayKey(tomorrow)) return `завтра в ${time}`;
+  const label = new Date(`${slot.date}T12:00:00`).toLocaleDateString("ru-RU", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  return `${label} в ${time}`;
 }
 
 export function ServiceCard({ service }: { service: Service }) {
@@ -96,6 +114,11 @@ export function ServiceCard({ service }: { service: Service }) {
             </svg>
           </div>
         )}
+        {service.nextSlot?.isToday && (
+          <span className="absolute left-2 top-2 rounded-full bg-green-600 px-2.5 py-1 text-xs font-medium text-white shadow-sm">
+            Можно сегодня
+          </span>
+        )}
         {showFavorite && (
           <button
             type="button"
@@ -147,6 +170,17 @@ export function ServiceCard({ service }: { service: Service }) {
               {service.seller.city ? ` · ${service.seller.city}` : ""}
             </span>
           </button>
+        )}
+        {service.nextSlot && (
+          <p
+            className={`text-xs ${
+              service.nextSlot.isToday
+                ? "font-medium text-green-700 dark:text-green-400"
+                : "text-zinc-600 dark:text-zinc-400"
+            }`}
+          >
+            Ближайшая запись: {formatNextSlot(service.nextSlot)}
+          </p>
         )}
         <div className="mt-1 flex min-h-10 flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm">
           <span className="font-semibold">{formatPrice(service)}</span>

@@ -1,3 +1,4 @@
+import { ScheduleService } from '../schedule/schedule.service';
 import { FollowsService } from '../follows/follows.service';
 import {
   BadRequestException,
@@ -66,6 +67,7 @@ export class ServicesService {
     private readonly geocodingService: GeocodingService,
     private readonly usersService: UsersService,
     private readonly followsService: FollowsService,
+    private readonly scheduleService: ScheduleService,
   ) {}
 
   async create(sellerId: string, dto: CreateServiceDto): Promise<Service> {
@@ -287,7 +289,8 @@ export class ServicesService {
 
     qb.skip((page - 1) * limit).take(limit);
 
-    const [items, total] = await qb.getManyAndCount();
+    const [found, total] = await qb.getManyAndCount();
+    const items = await this.scheduleService.attachNextSlots(found);
     return { items: items.map(toPublicService), total, page, limit };
   }
 
@@ -320,6 +323,7 @@ export class ServicesService {
           .orderBy('service.createdAt', 'DESC')
           .take(limitPerCategory)
           .getMany();
+        await this.scheduleService.attachNextSlots(services);
         return { category, services: services.map(toPublicService) };
       }),
     );
