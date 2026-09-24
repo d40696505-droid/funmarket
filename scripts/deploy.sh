@@ -177,6 +177,11 @@ ExecStart=/usr/bin/node dist/main.js
 Restart=always
 RestartSec=3
 User=${APP_USER}
+# Время слотов/броней вводится пользователями по Москве, а dayjs без явной
+# зоны разбирает его в локальной зоне процесса — на сервере это UTC, из-за
+# чего запас "за N часов до начала" считался со сдвигом в 3 часа (в том
+# числе позволял бронировать слоты, которые уже прошли).
+Environment=TZ=Europe/Moscow
 
 [Install]
 WantedBy=multi-user.target

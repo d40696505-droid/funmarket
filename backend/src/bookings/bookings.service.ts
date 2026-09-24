@@ -130,7 +130,7 @@ export class BookingsService {
     const slotStart = dayjs(`${dto.date}T${dto.startTime}`);
     if (slotStart.isBefore(dayjs().add(MIN_LEAD_TIME_HOURS, 'hour'))) {
       throw new BadRequestException(
-        `Бронирование доступно не менее чем за ${MIN_LEAD_TIME_HOURS} часов`,
+        `Бронирование доступно не менее чем за ${MIN_LEAD_TIME_HOURS} ч до начала`,
       );
     }
     const slotEnd = slotStart.add(service.durationMinutes, 'minute');
@@ -402,7 +402,7 @@ export class BookingsService {
     const newStart = dayjs(`${dto.date}T${dto.startTime}`);
     if (newStart.isBefore(dayjs().add(MIN_LEAD_TIME_HOURS, 'hour'))) {
       throw new BadRequestException(
-        `Новое время должно быть не менее чем через ${MIN_LEAD_TIME_HOURS} часов`,
+        `Новое время должно быть не менее чем через ${MIN_LEAD_TIME_HOURS} ч от текущего момента`,
       );
     }
     const newEnd = newStart.add(booking.service.durationMinutes, 'minute');
