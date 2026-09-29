@@ -39,9 +39,27 @@ export function HomeClient({
               Рыбалка, охота, путешествия, кулинария, ремесло — найдите мастера или
               организатора рядом с собой, на карте или в каталоге.
             </p>
-            <Link href="/catalog" className="btn-primary mt-5 inline-flex">
-              Весь каталог →
-            </Link>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <Link href="/catalog" className="btn-primary inline-flex">
+                Весь каталог →
+              </Link>
+              <Link
+                href="/map"
+                className="group flex items-center gap-2.5 overflow-hidden rounded-xl border border-white/30 bg-white/10 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-white/20"
+              >
+                {/* pointer-events-none: превью только показывает карту, тянуть/
+                    зумить её незачем — вся плашка целиком ведёт на /map. */}
+                <div className="pointer-events-none h-11 w-11 shrink-0 overflow-hidden rounded-lg">
+                  <ServiceMap markers={markers} zoom={9} className="h-full w-full" />
+                </div>
+                <span className="text-sm font-medium text-white">
+                  Смотреть на карте
+                  <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
