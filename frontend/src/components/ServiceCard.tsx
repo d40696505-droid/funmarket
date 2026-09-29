@@ -88,7 +88,7 @@ export function ServiceCard({ service }: { service: Service }) {
     <>
     <Link
       href={`/services/${service.id}`}
-      className="card-glass flex flex-col overflow-hidden hover:border-accent/50"
+      className="card-glass flex h-full flex-col overflow-hidden hover:border-accent/50"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         {cover ? (
@@ -142,7 +142,7 @@ export function ServiceCard({ service }: { service: Service }) {
           </button>
         )}
       </div>
-      <div className="flex flex-col gap-1.5 p-3.5">
+      <div className="flex flex-1 flex-col gap-1.5 p-3.5">
         <span className="text-xs text-zinc-600 dark:text-zinc-400">{service.category?.name}</span>
         <h3 className="line-clamp-2 min-h-11 font-medium leading-snug">{service.title}</h3>
         {service.seller && (
@@ -196,7 +196,11 @@ export function ServiceCard({ service }: { service: Service }) {
         </div>
 
         {!isOwnService && (
-          <div className="mt-1 flex items-center gap-2 border-t border-black/10 pt-2.5 dark:border-white/10">
+          // mt-auto — независимо от того, сколько строк заняли название или
+          // «Ближайшая запись» у соседних карточек в ряду, эта строка с
+          // кнопками остаётся прижатой к низу (см. h-full/flex-1 выше), и
+          // нижние границы карточек совпадают.
+          <div className="mt-auto flex items-center gap-2 border-t border-black/10 pt-2.5 dark:border-white/10">
             <button
               type="button"
               onClick={handleContactClick}
