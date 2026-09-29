@@ -95,28 +95,66 @@ body {
     @apply relative flex min-h-[360px] w-full items-center overflow-hidden bg-zinc-900 py-10;
   }
 
-  /* Коллаж из фото активностей вместо одной картинки: сетка 3x2 на телефоне
-     и 6x2 на широких экранах, поверх — затемняющий градиент для читаемости
-     стеклянной карточки. */
-  .hero-collage {
-    @apply absolute inset-0 grid grid-cols-3 grid-rows-2 gap-0.5;
+  /* Бегущая карусель реальных предложений вместо статичного коллажа:
+     горизонтальная лента карточек едет справа налево по кругу (дублируется
+     в разметке дважды, анимация сдвигает на 50% — переход между копиями
+     незаметен), поверх — затемняющий градиент для читаемости стеклянной
+     карточки текста. */
+  .hero-marquee {
+    @apply absolute inset-0 flex items-center;
   }
-  .hero-collage img {
-    @apply h-full w-full object-cover;
-  }
-  .hero-collage img:nth-child(n + 7) {
-    @apply hidden sm:block;
-  }
-  @media (min-width: 640px) {
-    .hero-collage {
-      grid-template-columns: repeat(6, 1fr);
-    }
-  }
-  .hero-collage::after {
+  .hero-marquee::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(10, 20, 10, 0.5), rgba(10, 25, 10, 0.1));
+    z-index: 1;
+    background: linear-gradient(to right, rgba(10, 20, 10, 0.72), rgba(10, 25, 10, 0.35));
+  }
+  .hero-marquee-track {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0 1rem;
+    width: max-content;
+    animation: hero-marquee-scroll 75s linear infinite;
+  }
+  .hero-nature:hover .hero-marquee-track {
+    animation-play-state: paused;
+  }
+  .hero-marquee-card {
+    position: relative;
+    display: block;
+    height: 220px;
+    width: 150px;
+    flex: none;
+    overflow: hidden;
+    border-radius: 0.9rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+  .hero-marquee-card-info {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    padding: 0.5rem 0.6rem 0.55rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
+  }
+  @media (min-width: 640px) {
+    .hero-marquee-card {
+      height: 260px;
+      width: 175px;
+    }
+  }
+  @keyframes hero-marquee-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-marquee-track {
+      animation: none;
+    }
   }
 
   .hero-glass {

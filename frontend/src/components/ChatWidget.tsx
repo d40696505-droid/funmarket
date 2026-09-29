@@ -21,6 +21,14 @@ import { OPEN_SUPPORT_CHAT_EVENT } from "@/lib/support-chat";
 const POLL_INTERVAL_MS = 4000;
 const WS_CONNECT_TIMEOUT_MS = 3000;
 
+function formatMsgTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Moscow",
+  });
+}
+
 function participantName(p: ChatSummary["otherParticipant"]): string {
   return p.brandName || [p.firstName, p.lastName].filter(Boolean).join(" ") || "Пользователь";
 }
@@ -305,6 +313,13 @@ export function ChatWidget() {
                           }`}
                         >
                           <p className="whitespace-pre-wrap">{msg.text}</p>
+                          <p
+                            className={`mt-0.5 text-right text-[10px] ${
+                              msg.senderId === user.id ? "text-white/70" : "text-zinc-500"
+                            }`}
+                          >
+                            {formatMsgTime(msg.createdAt)}
+                          </p>
                         </div>
                       ),
                     )}

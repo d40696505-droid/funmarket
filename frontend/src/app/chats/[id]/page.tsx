@@ -14,6 +14,14 @@ import { getChatSocket } from "@/lib/socket";
 const POLL_INTERVAL_MS = 4000;
 const WS_CONNECT_TIMEOUT_MS = 3000;
 
+function formatMsgTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("ru-RU", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Moscow",
+  });
+}
+
 export default function ChatConversationPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -185,14 +193,25 @@ export default function ChatConversationPage() {
                 }`}
               >
                 <p className="whitespace-pre-wrap">{msg.text}</p>
-                {msg.senderId !== user.id && (
-                  <button
-                    onClick={() => handleReport(msg.id)}
-                    className="mt-1 text-xs opacity-0 underline group-hover:opacity-60"
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  {msg.senderId !== user.id ? (
+                    <button
+                      onClick={() => handleReport(msg.id)}
+                      className="text-xs opacity-0 underline group-hover:opacity-60"
+                    >
+                      Пожаловаться
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                  <span
+                    className={`text-[10px] ${
+                      msg.senderId === user.id ? "text-white/70" : "text-zinc-500"
+                    }`}
                   >
-                    Пожаловаться
-                  </button>
-                )}
+                    {formatMsgTime(msg.createdAt)}
+                  </span>
+                </div>
               </div>
             ),
           )}
