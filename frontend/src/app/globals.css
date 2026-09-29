@@ -92,7 +92,9 @@ body {
      .hero-glass в разметке — так его левый край совпадает с остальными
      секциями страницы (mx-auto max-w-6xl px-4). */
   .hero-nature {
-    @apply relative flex min-h-[360px] w-full items-center overflow-hidden bg-zinc-900 py-10;
+    /* Тот же светло-серый, что у карточек (--card-background) — виден в
+       зазорах между карточками ленты и сверху/снизу от них. */
+    @apply relative flex min-h-[360px] w-full items-center overflow-hidden bg-card py-10;
   }
 
   /* Бегущая карусель реальных предложений вместо статичного коллажа:
