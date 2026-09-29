@@ -134,6 +134,16 @@ body {
     overflow: hidden;
     border-radius: 0.9rem;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    /* transform, не width/height — анимируется дёшево и не сдвигает
+       соседние карточки в ленте. */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hero-marquee-card:hover {
+    transform: scale(1.07);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+    outline: 2px solid rgba(255, 255, 255, 0.85);
+    outline-offset: -2px;
+    z-index: 2;
   }
   .hero-marquee-card-info {
     position: absolute;
@@ -149,18 +159,29 @@ body {
     }
   }
 
-  /* Карточка-виджет карты справа от текстовой плашки (не часть бегущей
-     ленты, стоит на месте поверх неё) — крупнее обычной карточки ленты и
-     с рамкой, чтобы визуально не путаться с ней. */
+  /* Карточка-виджет карты внутри текстовой плашки, справа от заголовка —
+     самостоятельная карточка (не часть .hero-marquee-card), со своей рамкой,
+     чтобы отличаться от карточек бегущей ленты на фоне. */
   .hero-map-card {
-    width: 190px;
-    height: 300px;
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    height: 160px;
+    border-radius: 0.9rem;
     border: 2px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
-  @media (min-width: 1024px) {
+  .hero-map-card:hover {
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+  @media (min-width: 768px) {
     .hero-map-card {
       width: 220px;
-      height: 320px;
+      height: 100%;
+      min-height: 180px;
     }
   }
   @keyframes hero-marquee-scroll {
@@ -182,7 +203,7 @@ body {
        угла иногда не обрезается по border-radius (известный баг), и сквозь
        угол проступает неразмытый кусок фона — карточка из ленты под низом.
        overflow-hidden форсирует обрезку по границе блока. */
-    @apply max-w-lg overflow-hidden rounded-3xl border border-white/40 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8;
+    @apply w-full overflow-hidden rounded-3xl border border-white/40 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8;
     background: linear-gradient(
       160deg,
       rgba(255, 255, 255, 0.22),
