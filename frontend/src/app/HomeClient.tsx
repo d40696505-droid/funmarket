@@ -33,14 +33,22 @@ export function HomeClient({
             без этого она перехватывала клики по карусели под собой по всей
             своей ширине, даже там, где сама плашка не нарисована. */}
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pointer-events-none">
-          <div className="hero-glass pointer-events-auto flex items-center gap-4">
+          {/* Размеры текста/отступов подобраны вручную под увеличенную на 15%
+              высоту и 10% ширину плашки (см. .hero-glass, .hero-map-card в
+              globals.css) — не связаны напрямую с шагами Tailwind. */}
+          <div className="hero-glass pointer-events-auto flex items-center gap-[1.15rem]">
             <div>
-              <h1 className="text-lg font-bold sm:text-xl">Навыки и активности рядом с вами</h1>
-              <p className="mt-1 text-xs text-white/85 sm:text-sm">
+              <h1 className="text-[1.29rem] font-bold sm:text-[1.4375rem]">
+                Навыки и активности рядом с вами
+              </h1>
+              <p className="mt-1 text-[0.8625rem] text-white/85 sm:text-[1.00625rem]">
                 Рыбалка, охота, путешествия, кулинария, ремесло — найдите мастера или
                 организатора рядом с собой, на карте или в каталоге.
               </p>
-              <Link href="/catalog" className="btn-primary mt-3 inline-flex px-4 py-2 text-sm">
+              <Link
+                href="/catalog"
+                className="btn-primary mt-[0.8625rem] inline-flex px-[1.15rem] py-[0.575rem] text-[1.00625rem]"
+              >
                 Весь каталог →
               </Link>
             </div>
