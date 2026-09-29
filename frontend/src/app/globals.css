@@ -148,6 +148,21 @@ body {
       width: 175px;
     }
   }
+
+  /* Карточка-виджет карты справа от текстовой плашки (не часть бегущей
+     ленты, стоит на месте поверх неё) — крупнее обычной карточки ленты и
+     с рамкой, чтобы визуально не путаться с ней. */
+  .hero-map-card {
+    width: 190px;
+    height: 300px;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+  }
+  @media (min-width: 1024px) {
+    .hero-map-card {
+      width: 220px;
+      height: 320px;
+    }
+  }
   @keyframes hero-marquee-scroll {
     from {
       transform: translateX(0);

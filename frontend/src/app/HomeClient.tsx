@@ -39,28 +39,27 @@ export function HomeClient({
               Рыбалка, охота, путешествия, кулинария, ремесло — найдите мастера или
               организатора рядом с собой, на карте или в каталоге.
             </p>
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link href="/catalog" className="btn-primary inline-flex">
-                Весь каталог →
-              </Link>
-              <Link
-                href="/map"
-                className="group flex items-center gap-2.5 overflow-hidden rounded-xl border border-white/30 bg-white/10 py-1.5 pl-1.5 pr-3 transition-colors hover:bg-white/20"
-              >
-                {/* pointer-events-none: превью только показывает карту, тянуть/
-                    зумить её незачем — вся плашка целиком ведёт на /map. */}
-                <div className="pointer-events-none h-11 w-11 shrink-0 overflow-hidden rounded-lg">
-                  <ServiceMap markers={markers} zoom={9} controls={[]} className="h-full w-full" />
-                </div>
-                <span className="text-sm font-medium text-white">
-                  Смотреть на карте
-                  <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">
-                    →
-                  </span>
-                </span>
-              </Link>
-            </div>
+            <Link href="/catalog" className="btn-primary mt-5 inline-flex">
+              Весь каталог →
+            </Link>
           </div>
+        </div>
+
+        {/* Карточка-виджет карты справа от плашки, в размер и стиль карточек
+            бегущей ленты (см. .hero-marquee-card) — сама не едет, стоит на
+            месте поверх ленты. Обёртка выровнена по тому же max-w-6xl/px-4,
+            что и остальные секции страницы, чтобы правый край совпадал с
+            каталогом и каруселями ниже. */}
+        <div className="pointer-events-none absolute inset-0 z-10 mx-auto hidden w-full max-w-6xl items-center justify-end px-4 md:flex">
+          <Link href="/map" className="hero-marquee-card hero-map-card pointer-events-auto">
+            <ServiceMap markers={markers} zoom={9} controls={[]} className="pointer-events-none h-full w-full" />
+            <div className="hero-marquee-card-info">
+              <p className="text-sm font-medium text-white">Смотреть на карте →</p>
+              <p className="text-[11px] text-white/75">
+                {markers.length > 0 ? `${markers.length} предложений рядом` : "Все услуги рядом"}
+              </p>
+            </div>
+          </Link>
         </div>
       </div>
 
