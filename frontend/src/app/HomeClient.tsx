@@ -33,30 +33,30 @@ export function HomeClient({
             без этого она перехватывала клики по карусели под собой по всей
             своей ширине, даже там, где сама плашка не нарисована. */}
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pointer-events-none">
-          <div className="hero-glass pointer-events-auto flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="hero-glass pointer-events-auto flex items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">Навыки и активности рядом с вами</h1>
-              <p className="mt-2 text-sm text-white/85 sm:text-base">
+              <h1 className="text-lg font-bold sm:text-xl">Навыки и активности рядом с вами</h1>
+              <p className="mt-1 text-xs text-white/85 sm:text-sm">
                 Рыбалка, охота, путешествия, кулинария, ремесло — найдите мастера или
                 организатора рядом с собой, на карте или в каталоге.
               </p>
-              <Link href="/catalog" className="btn-primary mt-5 inline-flex">
+              <Link href="/catalog" className="btn-primary mt-3 inline-flex px-4 py-2 text-sm">
                 Весь каталог →
               </Link>
             </div>
 
             {/* Виджет карты внутри плашки, справа от текста — сама не едет,
                 просто показывает точки услуг и целиком ведёт на /map. */}
-            <Link href="/map" className="hero-map-card group shrink-0">
+            <Link href="/map" className="hero-map-card group hidden shrink-0 sm:block">
               <ServiceMap markers={markers} zoom={9} controls={[]} className="pointer-events-none h-full w-full" />
               <div className="hero-marquee-card-info">
-                <p className="text-sm font-medium text-white">
+                <p className="text-xs font-medium text-white">
                   Смотреть на карте
                   <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">
                     →
                   </span>
                 </p>
-                <p className="text-[11px] text-white/75">
+                <p className="text-[10px] text-white/75">
                   {markers.length > 0 ? `${markers.length} предложений рядом` : "Все услуги рядом"}
                 </p>
               </div>
