@@ -28,8 +28,12 @@ export function HomeClient({
     <main className="flex flex-1 flex-col">
       <div className="hero-nature">
         <HeroCarousel services={heroServices} />
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4">
-          <div className="hero-glass">
+        {/* pointer-events-none: у обёртки w-full (нужен только для выравнивания
+            левого края .hero-glass с остальными секциями страницы), поэтому
+            без этого она перехватывала клики по карусели под собой по всей
+            своей ширине, даже там, где сама плашка не нарисована. */}
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pointer-events-none">
+          <div className="hero-glass pointer-events-auto">
             <h1 className="text-2xl font-bold sm:text-3xl">Навыки и активности рядом с вами</h1>
             <p className="mt-2 text-sm text-white/85 sm:text-base">
               Рыбалка, охота, путешествия, кулинария, ремесло — найдите мастера или
