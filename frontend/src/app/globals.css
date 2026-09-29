@@ -163,7 +163,11 @@ body {
   }
 
   .hero-glass {
-    @apply max-w-lg rounded-3xl border border-white/40 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8;
+    /* overflow-hidden обязателен: в Chromium backdrop-blur у скруглённого
+       угла иногда не обрезается по border-radius (известный баг), и сквозь
+       угол проступает неразмытый кусок фона — карточка из ленты под низом.
+       overflow-hidden форсирует обрезку по границе блока. */
+    @apply max-w-lg overflow-hidden rounded-3xl border border-white/40 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8;
     background: linear-gradient(
       160deg,
       rgba(255, 255, 255, 0.22),
