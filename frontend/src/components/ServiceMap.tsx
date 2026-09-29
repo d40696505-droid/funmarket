@@ -18,6 +18,7 @@ export function ServiceMap({
   highlightedId,
   onMarkerHover,
   focusedId,
+  controls = ["zoomControl", "geolocationControl"],
 }: {
   markers: ServiceMapMarker[];
   className?: string;
@@ -31,6 +32,10 @@ export function ServiceMap({
   onMarkerHover?: (marker: ServiceMapMarker | null, position: { x: number; y: number } | null) => void;
   // id услуги, к которой нужно перелистнуть карту (клик по строке списка).
   focusedId?: string | null;
+  // Для маленьких превью-карт (см. миникарту в hero-плашке) элементы
+  // управления в масштабе контейнера просто не помещаются и перекрывают
+  // собой всю картинку — передавайте [] на таких размерах.
+  controls?: string[];
 }) {
   const { ready, error: mapError } = useYandexMaps();
   const router = useRouter();
@@ -50,7 +55,7 @@ export function ServiceMap({
       mapInstanceRef.current = new window.ymaps.Map(mapContainerRef.current, {
         center,
         zoom,
-        controls: ["zoomControl", "geolocationControl"],
+        controls,
       });
     }
     const map = mapInstanceRef.current;

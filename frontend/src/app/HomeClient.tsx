@@ -50,7 +50,7 @@ export function HomeClient({
                 {/* pointer-events-none: превью только показывает карту, тянуть/
                     зумить её незачем — вся плашка целиком ведёт на /map. */}
                 <div className="pointer-events-none h-11 w-11 shrink-0 overflow-hidden rounded-lg">
-                  <ServiceMap markers={markers} zoom={9} className="h-full w-full" />
+                  <ServiceMap markers={markers} zoom={9} controls={[]} className="h-full w-full" />
                 </div>
                 <span className="text-sm font-medium text-white">
                   Смотреть на карте
