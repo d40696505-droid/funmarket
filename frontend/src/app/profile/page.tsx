@@ -239,6 +239,7 @@ function ProfileForm({
   const [sellerType, setSellerType] = useState(user.sellerType ?? "professional");
   const [skills, setSkills] = useState<string[]>(user.skills ?? []);
   const [skillInput, setSkillInput] = useState("");
+  const [isHunter, setIsHunter] = useState(user.isHunter ?? false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -269,6 +270,7 @@ function ProfileForm({
         sellerType:
           user.role === "seller" || user.role === "both" ? sellerType : undefined,
         skills: user.role === "seller" || user.role === "both" ? skills : undefined,
+        isHunter,
       });
       onSaved(updated);
       setSuccess(true);
@@ -407,6 +409,22 @@ function ProfileForm({
           </div>
         </>
       )}
+
+      <label className="flex items-start gap-2.5 rounded-lg border border-black/10 p-3 text-sm dark:border-white/10">
+        <input
+          type="checkbox"
+          checked={isHunter}
+          onChange={(e) => setIsHunter(e.target.checked)}
+          className="mt-0.5"
+        />
+        <span>
+          <span className="font-medium">Я охотник</span>
+          <span className="block text-xs text-zinc-500">
+            У меня есть лицензия на оружие и охотничий билет. Платформа не проверяет документы —
+            ответственность за их наличие и действительность несёт пользователь.
+          </span>
+        </span>
+      </label>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {success && <p className="text-sm text-green-600">Сохранено</p>}

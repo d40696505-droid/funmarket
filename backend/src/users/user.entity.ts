@@ -75,6 +75,13 @@ export class User {
   @Column({ type: 'text', array: true, default: () => "'{}'" })
   skills: string[];
 
+  // Самостоятельная отметка пользователя в профиле — платформа не проверяет
+  // охотничий билет/разрешение на оружие, это не верификация (см. подпись
+  // рядом с чекбоксом на фронтенде и docs/legal/seller-terms.md п. 2.2).
+  // Приватное поле, наружу в toProfileSummary не отдаётся.
+  @Column({ default: false })
+  isHunter: boolean;
+
   // Интересы покупателя, отмеченные при регистрации — приватные данные,
   // не должны попадать в публичные ответы (toProfileSummary/toPublicUser).
   @Column({ type: 'text', array: true, default: () => "'{}'" })

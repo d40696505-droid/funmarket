@@ -1,6 +1,7 @@
 import {
   ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsEnum,
   IsOptional,
   IsPhoneNumber,
@@ -61,4 +62,10 @@ export class UpdateProfileDto {
   @ArrayMaxSize(20)
   @IsString({ each: true })
   skills?: string[];
+
+  // Самостоятельная отметка, не верификация — см. комментарий у
+  // User.isHunter.
+  @IsOptional()
+  @IsBoolean()
+  isHunter?: boolean;
 }

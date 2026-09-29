@@ -23,6 +23,9 @@ export interface PublicUser {
   cityPendingModeration: boolean;
   sellerType: "private" | "professional" | null;
   skills: string[];
+  // Самоотметка "я охотник" — платформа документы не проверяет, см. подпись
+  // рядом с чекбоксом в профиле.
+  isHunter: boolean;
   interests: string[];
   interestsOther: string | null;
   rating: string;
@@ -205,6 +208,7 @@ export function updateMe(
       | "role"
       | "sellerType"
       | "skills"
+      | "isHunter"
     >
   >,
 ) {

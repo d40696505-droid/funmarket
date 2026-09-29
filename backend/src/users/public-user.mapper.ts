@@ -15,6 +15,10 @@ export function toPublicUser(user: User) {
     cityPendingModeration: user.cityPendingModeration,
     sellerType: user.sellerType,
     skills: user.skills,
+    // Самоотметка "я охотник" — не верификация, наружу (toProfileSummary) не
+    // отдаётся: это чувствительные данные (факт владения оружием), незачем
+    // публично светить ими в чужом профиле.
+    isHunter: user.isHunter,
     // Приватные данные о самом пользователе — видны только ему (toPublicUser
     // используется для /me, register, login), но не другим (toProfileSummary
     // их не включает).
