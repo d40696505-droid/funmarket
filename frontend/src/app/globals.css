@@ -179,9 +179,9 @@ body {
     position: relative;
     display: block;
     overflow: hidden;
-    width: 127px; /* 110px + 15% */
-    height: 104px; /* 90px + 15% */
-    border-radius: 0.7rem;
+    width: 150px;
+    height: 150px;
+    border-radius: 0.9rem;
     border: 2px solid rgba(255, 255, 255, 0.55);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -192,8 +192,8 @@ body {
   }
   @media (min-width: 768px) {
     .hero-map-card {
-      width: 161px; /* 140px + 15% */
-      height: 115px; /* 100px + 15% */
+      width: 190px;
+      height: 190px;
     }
   }
   @keyframes hero-marquee-scroll {
