@@ -104,9 +104,20 @@ export class ChatsService {
         where: { chatId: chat.id },
         order: { createdAt: 'DESC' },
       });
-      const unreadCount = await this.messagesRepository.count({
-        where: { chatId: chat.id, isRead: false },
-      });
+      // Непрочитанные — это чужие сообщения (включая системные, senderId
+      // NULL), которые я ещё не открывал; раньше здесь считался count() по
+      // всем isRead=false в чате, что включало и мои же отправленные
+      // сообщения (они остаются isRead=false, пока их не откроет
+      // собеседник) — бейдж показывал общее число, а не то, что реально
+      // новое для меня.
+      const unreadCount = await this.messagesRepository
+        .createQueryBuilder('message')
+        .where('message.chatId = :chatId', { chatId: chat.id })
+        .andWhere('message.isRead = false')
+        .andWhere('(message.senderId != :userId OR message.senderId IS NULL)', {
+          userId,
+        })
+        .getCount();
 
       summaries.push({
         id: chat.id,
@@ -138,10 +149,16 @@ export class ChatsService {
       .createQueryBuilder()
       .update(Message)
       .set({ isRead: true })
-      .where('chatId = :chatId AND senderId != :userId AND isRead = false', {
-        chatId: chat.id,
-        userId,
-      })
+      // "!= :userId" в SQL не задевает NULL (системные сообщения) — раньше
+      // из-за этого системные сообщения никогда не помечались прочитанными
+      // и вечно висели в unreadCount.
+      .where(
+        'chatId = :chatId AND (senderId != :userId OR senderId IS NULL) AND isRead = false',
+        {
+          chatId: chat.id,
+          userId,
+        },
+      )
       .execute();
 
     return messages;

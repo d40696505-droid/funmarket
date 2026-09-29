@@ -108,6 +108,11 @@ body {
     position: absolute;
     inset: 0;
     z-index: 1;
+    /* Без этого позиционированный ::after перехватывал клики поверх
+       .hero-marquee-track (тот не позиционирован — рисуется в обычном
+       потоке ниже) — карточки выглядели кликабельными, но клик никуда не
+       вёл. */
+    pointer-events: none;
     background: linear-gradient(to right, rgba(10, 20, 10, 0.72), rgba(10, 25, 10, 0.35));
   }
   .hero-marquee-track {
