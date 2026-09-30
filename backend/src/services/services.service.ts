@@ -56,7 +56,11 @@ export interface ServiceMapMarker {
   lng: number;
 }
 
-const FOREIGN_KEY_VIOLATION_CODE = '23503';
+// '23503' — общий foreign_key_violation (ON DELETE NO ACTION); у нас FK на
+// bookings.serviceId объявлен как ON DELETE RESTRICT, для него Postgres
+// репортит отдельный код '23001' (restrict_violation) — проверено вживую,
+// с одним '23503' блок ниже не срабатывал и удаление падало 500-й.
+const FOREIGN_KEY_VIOLATION_CODES = ['23503', '23001'];
 
 @Injectable()
 export class ServicesService {
@@ -257,7 +261,9 @@ export class ServicesService {
     } catch (err) {
       if (
         err instanceof QueryFailedError &&
-        (err as unknown as { code?: string }).code === FOREIGN_KEY_VIOLATION_CODE
+        FOREIGN_KEY_VIOLATION_CODES.includes(
+          (err as unknown as { code?: string }).code ?? '',
+        )
       ) {
         throw new BadRequestException(
           'Нельзя удалить услугу: по ней есть бронирования (история заказов). ' +
