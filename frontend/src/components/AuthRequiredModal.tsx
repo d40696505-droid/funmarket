@@ -30,10 +30,14 @@ export function AuthRequiredModal({
         <h2 className="mb-2 text-lg font-semibold">Войдите в аккаунт</h2>
         <p className="mb-5 text-sm text-zinc-600 dark:text-zinc-400">{message}</p>
         <div className="flex flex-col gap-2">
-          <Link href="/login" className="btn-primary w-full">
+          {/* onClick={onClose} — Link делает клиентский переход без
+              размонтирования Header/ChatWidget/etc., где живёт состояние
+              открытости модалки: без явного закрытия она оставалась
+              висеть поверх страницы входа/регистрации. */}
+          <Link href="/login" className="btn-primary w-full" onClick={onClose}>
             Войти
           </Link>
-          <Link href="/register" className="btn-secondary w-full">
+          <Link href="/register" className="btn-secondary w-full" onClick={onClose}>
             Зарегистрироваться
           </Link>
         </div>
