@@ -54,8 +54,13 @@ export function HomeClient({
           {/* Та же сетка, что у карточек снизу (grid-cols-2 sm:3 lg:4 xl:5) —
               плашка растянута на первые 3 колонки (col-span-3), поэтому её
               правый край всегда точно совпадает с правым краем 3-й карточки,
-              на любой ширине экрана, а не подобран вручную под один брейкпоинт. */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              на любой ширине экрана, а не подобран вручную под один брейкпоинт.
+              h-full + grid-rows-[1fr]: без них строка грида сама по себе
+              высотой "по контенту", и .hero-glass со своим h-full тянется
+              не до высоты баннера (как раньше), а только до высоты своего
+              текста — плашка ощутимо "просела" вниз по высоте после этой
+              правки, пока не добавили это. */}
+          <div className="grid h-full grid-cols-2 grid-rows-[1fr] gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <div className="hero-glass pointer-events-auto col-span-2 flex items-stretch gap-[1.15rem] sm:col-span-3">
               <div className="flex flex-1 flex-col justify-center py-[1.15rem] pr-[1.15rem] pl-[1.15rem] sm:py-[1.4375rem] sm:pr-0 sm:pl-[1.4375rem]">
                 <h1 className="text-[1.29rem] font-bold sm:text-[1.4375rem]">
