@@ -74,7 +74,7 @@ export function ServiceDetailClient({ service }: { service: Service }) {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-10">
+    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 py-10">
       <div className="flex items-center justify-between gap-2">
         <BackButton fallbackHref="/catalog" />
         {user?.isAdmin && (

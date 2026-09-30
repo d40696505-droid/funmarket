@@ -148,7 +148,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-black/10 bg-background/80 backdrop-blur dark:border-white/10">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
         <Link href="/" className="shrink-0 text-lg font-semibold tracking-tight" onClick={closeMenu}>
           HobbyHub
         </Link>
@@ -268,7 +268,7 @@ export function Header() {
       {pathname === "/" && (
         <form
           onSubmit={handleSearchSubmit}
-          className="mx-auto flex max-w-6xl items-center gap-2 border-t border-black/10 px-4 py-2.5 dark:border-white/10"
+          className="mx-auto flex max-w-7xl items-center gap-2 border-t border-black/10 px-4 py-2.5 dark:border-white/10"
         >
           {searchFields}
         </form>

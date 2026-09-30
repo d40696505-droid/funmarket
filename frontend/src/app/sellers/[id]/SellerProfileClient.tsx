@@ -117,7 +117,7 @@ export function SellerProfileClient({
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
       <div className="flex items-center justify-between gap-2">
         <BackButton fallbackHref="/following" />
         {user?.isAdmin && user.id !== profile.id && (

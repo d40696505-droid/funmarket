@@ -111,12 +111,12 @@ export function CatalogClient() {
 
   const totalPages = result ? Math.max(1, Math.ceil(result.total / result.limit)) : 1;
 
-  // max-w-6xl — как у шапки (Header.tsx) и остальных страниц с карточками
+  // max-w-7xl — как у шапки (Header.tsx) и остальных страниц с карточками
   // (главная, избранное, подписки, профиль продавца). Раньше здесь стоял
   // max-w-5xl — на 128px уже, из-за чего левый/правый край каталога не
   // совпадал с шапкой на широких экранах.
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Каталог услуг</h1>
         <Link href="/map" className="text-sm underline">

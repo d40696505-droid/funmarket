@@ -50,7 +50,7 @@ export function HomeClient({
             левого края .hero-glass с остальными секциями страницы), поэтому
             без этого она перехватывала клики по карусели под собой по всей
             своей ширине, даже там, где сама плашка не нарисована. */}
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pointer-events-none">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pointer-events-none">
           {/* Размеры текста/отступов подобраны вручную под увеличенную на 15%
               высоту и 10% ширину плашки (см. .hero-glass, .hero-map-card в
               globals.css) — не связаны напрямую с шагами Tailwind. */}
@@ -91,8 +91,8 @@ export function HomeClient({
         </div>
       </div>
 
-      {/* max-w-7xl — на один шаг шире, чем остальные секции (max-w-6xl),
-          и лишняя колонка карточек на широких экранах (xl:grid-cols-5). */}
+      {/* max-w-7xl — как у шапки и остальных секций сайта (см. Header.tsx);
+          xl:grid-cols-5 — лишняя колонка карточек на широких экранах. */}
       <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-8">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Все услуги</h2>
@@ -108,7 +108,7 @@ export function HomeClient({
         )}
       </div>
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-10">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-10">
         <Link
           href="/map"
           className="card-glass group flex flex-col items-center gap-4 overflow-hidden p-0 sm:flex-row"
