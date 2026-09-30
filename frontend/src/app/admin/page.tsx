@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  adminDeleteService,
   approveCityReview,
   approveService,
   getCityReviewQueue,
@@ -166,6 +167,19 @@ export default function AdminPage() {
       reloadServices();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось отклонить");
+    }
+  }
+
+  // В отличие от "Отклонить" (возвращает в черновик продавцу), это
+  // безвозвратное удаление — для явного спама/нарушений на модерации.
+  async function handleDeleteService(id: string, title: string) {
+    if (!confirm(`Удалить услугу «${title}» безвозвратно? Действие нельзя отменить.`)) return;
+    setError(null);
+    try {
+      await adminDeleteService(id);
+      reloadServices();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось удалить");
     }
   }
 
@@ -383,6 +397,12 @@ export default function AdminPage() {
                       className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
                     >
                       Отклонить
+                    </button>
+                    <button
+                      onClick={() => handleDeleteService(service.id, service.title)}
+                      className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
+                    >
+                      Удалить
                     </button>
                   </div>
                 </li>

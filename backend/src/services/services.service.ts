@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { QueryFailedError, Repository, SelectQueryBuilder } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { Category } from '../categories/category.entity';
 import { GeocodingService } from '../geocoding/geocoding.service';
@@ -55,6 +55,8 @@ export interface ServiceMapMarker {
   lat: number;
   lng: number;
 }
+
+const FOREIGN_KEY_VIOLATION_CODE = '23503';
 
 @Injectable()
 export class ServicesService {
@@ -235,7 +237,35 @@ export class ServicesService {
 
   async delete(id: string, sellerId: string): Promise<void> {
     const service = await this.getOwnedOrThrow(id, sellerId);
-    await this.servicesRepository.remove(service);
+    await this.removeWithBookingsGuard(service);
+  }
+
+  // Админ может удалить любую чужую услугу (например, спам, прошедший на
+  // модерацию) — та же логика, но без проверки владельца.
+  async adminDelete(id: string): Promise<void> {
+    const service = await this.findByIdOrThrow(id);
+    await this.removeWithBookingsGuard(service);
+  }
+
+  // bookings.serviceId — ON DELETE RESTRICT (история заказов не должна
+  // потеряться вместе с удалённой услугой), поэтому реальное удаление у
+  // услуги хоть с одной бронью падает на уровне БД — превращаем это в
+  // понятную ошибку вместо 500.
+  private async removeWithBookingsGuard(service: Service): Promise<void> {
+    try {
+      await this.servicesRepository.remove(service);
+    } catch (err) {
+      if (
+        err instanceof QueryFailedError &&
+        (err as unknown as { code?: string }).code === FOREIGN_KEY_VIOLATION_CODE
+      ) {
+        throw new BadRequestException(
+          'Нельзя удалить услугу: по ней есть бронирования (история заказов). ' +
+            'Снимите её с публикации — используйте деактивацию вместо удаления.',
+        );
+      }
+      throw err;
+    }
   }
 
   async findMine(sellerId: string): Promise<Service[]> {

@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -130,6 +132,17 @@ export class ServicesController {
   @Patch('admin/:id/reject')
   reject(@Param('id') id: string, @Body() dto: RejectServiceDto) {
     return this.servicesService.reject(id, dto.comment);
+  }
+
+  // Полное удаление любой чужой услуги администратором — не только тех,
+  // что на модерации (в отличие от reject, который лишь возвращает в
+  // черновик). Использовать для спама/нарушений, а не для рутинного
+  // снятия с публикации — для этого у продавца есть деактивация.
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Delete('admin/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  adminDelete(@Param('id') id: string) {
+    return this.servicesService.adminDelete(id);
   }
 
   @Get(':id')

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -71,6 +72,31 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteMe(@CurrentUser() currentUser: JwtPayload) {
     await this.usersService.anonymize(currentUser.sub);
+  }
+
+  // Та же анонимизация, что и самостоятельное удаление аккаунта (email/имя/
+  // фото стираются, активные услуги снимаются с публикации — см. anonymize),
+  // только инициирует администратор для чужого аккаунта: спам/нарушения.
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Delete('admin/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async adminDelete(
+    @CurrentUser() admin: JwtPayload,
+    @Param('id') id: string,
+  ) {
+    if (id === admin.sub) {
+      throw new BadRequestException(
+        'Нельзя удалить свой аккаунт здесь — используйте удаление профиля в настройках',
+      );
+    }
+    const target = await this.usersService.findById(id);
+    if (!target) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+    if (target.isAdmin) {
+      throw new BadRequestException('Нельзя удалить другого администратора');
+    }
+    await this.usersService.anonymize(id);
   }
 
   @Get(':id')

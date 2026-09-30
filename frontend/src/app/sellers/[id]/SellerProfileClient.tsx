@@ -8,6 +8,7 @@ import { BackButton } from "@/components/BackButton";
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { ServiceCard } from "@/components/ServiceCard";
 import {
+  adminDeleteUser,
   createChat,
   followSeller,
   getFollowedSellerIds,
@@ -41,6 +42,26 @@ export function SellerProfileClient({
   const [following, setFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followBusy, setFollowBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleAdminDelete() {
+    if (
+      !confirm(
+        `Удалить пользователя «${displayName(profile)}» безвозвратно? Профиль будет анонимизирован, его активные услуги сняты с публикации. Действие нельзя отменить.`,
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    try {
+      await adminDeleteUser(profile.id);
+      router.push("/catalog");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось удалить пользователя");
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     getFollowersCount(profile.id)
@@ -97,7 +118,19 @@ export function SellerProfileClient({
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <BackButton fallbackHref="/following" />
+      <div className="flex items-center justify-between gap-2">
+        <BackButton fallbackHref="/following" />
+        {user?.isAdmin && user.id !== profile.id && (
+          <button
+            type="button"
+            onClick={handleAdminDelete}
+            disabled={deleting}
+            className="mb-4 rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:hover:bg-red-950"
+          >
+            {deleting ? "Удаляем…" : "Удалить пользователя (админ)"}
+          </button>
+        )}
+      </div>
       <div className="card mb-8 flex flex-col gap-4 p-5 sm:flex-row sm:items-start">
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
           {profile.avatarUrl && (

@@ -10,7 +10,7 @@ import { BookingWidget } from "@/components/BookingWidget";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { ServiceLocationWidget } from "@/components/ServiceLocationWidget";
-import { createChat, type Service } from "@/lib/api";
+import { adminDeleteService, createChat, type Service } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 
 const PRICE_UNIT_LABEL: Record<Service["priceUnit"], string> = {
@@ -40,6 +40,22 @@ export function ServiceDetailClient({ service }: { service: Service }) {
   const [messaging, setMessaging] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleAdminDelete() {
+    if (!confirm(`Удалить услугу «${service.title}» безвозвратно? Действие нельзя отменить.`)) {
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    try {
+      await adminDeleteService(service.id);
+      router.push("/catalog");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось удалить услугу");
+      setDeleting(false);
+    }
+  }
 
   async function handleMessageSeller() {
     if (!user) {
@@ -59,7 +75,19 @@ export function ServiceDetailClient({ service }: { service: Service }) {
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-10">
-      <BackButton fallbackHref="/catalog" />
+      <div className="flex items-center justify-between gap-2">
+        <BackButton fallbackHref="/catalog" />
+        {user?.isAdmin && (
+          <button
+            type="button"
+            onClick={handleAdminDelete}
+            disabled={deleting}
+            className="mb-4 rounded-full border border-red-200 px-3 py-1 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:hover:bg-red-950"
+          >
+            {deleting ? "Удаляем…" : "Удалить услугу (админ)"}
+          </button>
+        )}
+      </div>
       <div className="flex w-full flex-col gap-8 lg:flex-row">
       <div className="lg:flex-1">
         {service.images.length === 0 && (

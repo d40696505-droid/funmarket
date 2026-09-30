@@ -396,6 +396,17 @@ export function deleteService(id: string) {
   return request<void>(`/api/services/${id}`, { method: "DELETE" });
 }
 
+// Удаление любой чужой услуги администратором (в отличие от deleteService —
+// без проверки владельца).
+export function adminDeleteService(id: string) {
+  return request<void>(`/api/services/admin/${id}`, { method: "DELETE" });
+}
+
+// Удаление (анонимизация) любого чужого аккаунта администратором.
+export function adminDeleteUser(id: string) {
+  return request<void>(`/api/users/admin/${id}`, { method: "DELETE" });
+}
+
 export function getMyServices() {
   return request<Service[]>("/api/services/my");
 }
