@@ -47,16 +47,19 @@ export function ServiceLocationWidget({ service }: { service: Service }) {
 
   return (
     <div className="mb-6">
-      {/* Без geolocationControl: кнопка "где я" вместе с ползунком зума не
-          помещалась по высоте в невысокий виджет и обрезалась контейнером
-          (overflow: hidden) — а расстояние до себя здесь и так считает
-          отдельная кнопка "Показать расстояние до вас" ниже. */}
+      {/* Без geolocationControl: кнопка "где я" здесь не нужна — расстояние
+          до себя считает отдельная кнопка "Показать расстояние до вас"
+          ниже. Даже без неё сам зум-контрол у Яндекс.Карт занимает ~315px
+          от верха карты (проверено эмпирически — контрол начинается на
+          109px ниже верхнего края, сам ~206px высотой), поэтому высота
+          виджета увеличена: при 220px нижняя кнопка "−" обрезалась
+          контейнером (overflow: hidden). */}
       <ServiceMap
         markers={[marker]}
         center={[lat, lng]}
         zoom={13}
         controls={["zoomControl"]}
-        className="card h-[260px] w-full overflow-hidden"
+        className="card h-[340px] w-full overflow-hidden"
       />
       <div className="mt-2 flex items-center gap-2 text-sm">
         {distanceKm != null ? (
