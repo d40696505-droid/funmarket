@@ -94,7 +94,11 @@ body {
   .hero-nature {
     /* Тот же светло-серый, что у карточек (--card-background) — виден в
        зазорах между карточками ленты и сверху/снизу от них. */
-    @apply relative flex min-h-[360px] w-full items-center overflow-hidden bg-card py-10;
+    /* items-stretch (не items-center) — плашка "Навыки и активности"
+       растягивается на всю высоту баннера, вплотную к бегущей ленте сверху
+       и снизу, вместо того чтобы плавать по центру с зазорами. Ширину это
+       не трогает — обёртка вокруг плашки как была w-full/max-w-6xl. */
+    @apply relative flex min-h-[360px] w-full items-stretch overflow-hidden bg-card py-10;
   }
 
   /* Бегущая карусель реальных предложений вместо статичного коллажа:
@@ -215,7 +219,7 @@ body {
        угла иногда не обрезается по border-radius (известный баг), и сквозь
        угол проступает неразмытый кусок фона — карточка из ленты под низом.
        overflow-hidden форсирует обрезку по границе блока. */
-    @apply overflow-hidden rounded-3xl border border-white/40 text-white shadow-2xl backdrop-blur-xl;
+    @apply h-full overflow-hidden rounded-3xl border border-white/40 text-white shadow-2xl backdrop-blur-xl;
     /* max-w-xl (36rem) + 10% ширины; паддинг — от p-4/sm:p-5 (1rem/1.25rem) + 15% высоты. */
     max-width: 39.6rem;
     padding: 1.15rem;
