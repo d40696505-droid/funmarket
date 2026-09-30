@@ -454,9 +454,23 @@ export class ServicesService {
   }
 
   async approve(id: string): Promise<Service> {
-    const service = await this.findByIdOrThrow(id);
+    // findByIdOrThrow не подтягивает seller — здесь он нужен для проверки
+    // верификации, отдельный findOne вместо правки общего хелпера, чтобы не
+    // грузить лишнюю связь во всех остальных местах, где он переиспользуется.
+    const service = await this.servicesRepository.findOne({
+      where: { id },
+      relations: { seller: true },
+    });
+    if (!service) {
+      throw new NotFoundException('Услуга не найдена');
+    }
     if (service.status !== ServiceStatus.MODERATION) {
       throw new BadRequestException('Услуга не находится на модерации');
+    }
+    if (!service.seller.isSellerVerified) {
+      throw new BadRequestException(
+        'Нельзя одобрить услугу непроверенного продавца — сначала верифицируйте продавца во вкладке «Продавцы»',
+      );
     }
     service.status = ServiceStatus.ACTIVE;
     service.moderationComment = null;

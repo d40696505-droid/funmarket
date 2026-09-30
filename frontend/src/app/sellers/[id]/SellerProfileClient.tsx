@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AuthRequiredModal } from "@/components/AuthRequiredModal";
+import { BackButton } from "@/components/BackButton";
 import { ReviewsSection } from "@/components/ReviewsSection";
 import { ServiceCard } from "@/components/ServiceCard";
 import {
@@ -96,6 +97,7 @@ export function SellerProfileClient({
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+      <BackButton fallbackHref="/following" />
       <div className="card mb-8 flex flex-col gap-4 p-5 sm:flex-row sm:items-start">
         <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
           {profile.avatarUrl && (

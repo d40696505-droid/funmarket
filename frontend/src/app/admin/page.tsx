@@ -174,6 +174,9 @@ export default function AdminPage() {
     try {
       await verifySeller(userId, verified);
       reloadSellers();
+      // Бейдж "продавец не верифицирован" и доступность кнопки "Одобрить" в
+      // очереди модерации зависят от этого же флага — обновляем и её.
+      reloadServices();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось обновить верификацию");
     }
@@ -291,6 +294,11 @@ export default function AdminPage() {
                       <p className="text-sm text-zinc-500">
                         {service.seller ? sellerLabel(service.seller) : "Продавец"}
                         {service.category && ` · ${service.category.name}`}
+                        {service.seller && !service.seller.isSellerVerified && (
+                          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                            Продавец не верифицирован
+                          </span>
+                        )}
                       </p>
                       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                         {service.description}
@@ -355,12 +363,21 @@ export default function AdminPage() {
                   )}
 
                   <div className="flex gap-2 text-sm">
-                    <button
-                      onClick={() => handleApprove(service.id)}
-                      className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
-                    >
-                      Одобрить
-                    </button>
+                    {service.seller && !service.seller.isSellerVerified ? (
+                      <button
+                        onClick={() => handleToggleVerify(service.seller!.id, true)}
+                        className="rounded-full border border-amber-300 px-3 py-1 text-amber-800 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950"
+                      >
+                        Верифицировать продавца
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleApprove(service.id)}
+                        className="rounded-full border border-black/10 px-3 py-1 hover:bg-black/[.04] dark:border-white/10 dark:hover:bg-white/[.08]"
+                      >
+                        Одобрить
+                      </button>
+                    )}
                     <button
                       onClick={() => handleReject(service.id)}
                       className="rounded-full border border-red-200 px-3 py-1 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"

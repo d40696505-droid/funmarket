@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthRequiredModal } from "@/components/AuthRequiredModal";
+import { BackButton } from "@/components/BackButton";
 import { BookingWidget } from "@/components/BookingWidget";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { ReviewsSection } from "@/components/ReviewsSection";
@@ -57,7 +58,9 @@ export function ServiceDetailClient({ service }: { service: Service }) {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 lg:flex-row">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-10">
+      <BackButton fallbackHref="/catalog" />
+      <div className="flex w-full flex-col gap-8 lg:flex-row">
       <div className="lg:flex-1">
         {service.images.length === 0 && (
           <div
@@ -251,6 +254,7 @@ export function ServiceDetailClient({ service }: { service: Service }) {
           <p className="mb-4 text-xl font-semibold">{formatPrice(service)}</p>
           <BookingWidget service={service} onAuthRequired={() => setShowAuthPrompt(true)} />
         </div>
+      </div>
       </div>
 
       {showAuthPrompt && <AuthRequiredModal onClose={() => setShowAuthPrompt(false)} />}

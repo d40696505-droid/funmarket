@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { BackButton } from "@/components/BackButton";
 import { ServiceForm, type ServiceFormValues } from "@/components/ServiceForm";
 import {
   deleteService,
@@ -129,6 +130,7 @@ export default function EditServicePage() {
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10">
+      <BackButton fallbackHref="/my-services" />
       <h1 className="mb-1 text-2xl font-semibold">Редактирование услуги</h1>
       <div className="mb-6 flex items-center justify-between">
         <p className="text-sm text-zinc-500">Статус: {SERVICE_STATUS_LABEL[service.status]}</p>
