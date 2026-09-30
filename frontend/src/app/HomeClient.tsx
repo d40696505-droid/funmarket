@@ -1,11 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { CategoryCarousel } from "@/components/CategoryCarousel";
+import { useMemo } from "react";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { ServiceCard } from "@/components/ServiceCard";
 import { ServiceMap } from "@/components/ServiceMap";
 import type { CategoryCarousel as CategoryCarouselData, Service, ServiceMapMarker } from "@/lib/api";
+
+// Fisher–Yates, не .sort(() => Math.random() - 0.5) — тот даёт неравномерное
+// распределение (смещён к исходному порядку).
+function shuffled<T>(items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 export function HomeClient({
   services,
@@ -23,6 +34,13 @@ export function HomeClient({
     carousels.length > 0
       ? carousels.flatMap((c) => c.services.slice(0, 2))
       : services;
+
+  // Раньше ниже баннера были отдельные карусели по категориям — теперь один
+  // общий список вперемешку. useMemo с зависимостью от services (новый
+  // объект при каждом заходе на страницу — см. page.tsx) — порядок
+  // перемешивается заново при каждой загрузке страницы, но не дёргается на
+  // каждый повторный рендер компонента (лайк/избранное и т.п.).
+  const shuffledServices = useMemo(() => shuffled(services), [services]);
 
   return (
     <main className="flex flex-1 flex-col">
@@ -73,23 +91,17 @@ export function HomeClient({
         </div>
       </div>
 
-      {carousels.length > 0 && (
-        <div className="mx-auto w-full max-w-6xl px-4 pt-8">
-          {carousels.map((c) => (
-            <CategoryCarousel key={c.category.id} category={c.category} services={c.services} />
-          ))}
-        </div>
-      )}
-
-      <div className="mx-auto w-full max-w-6xl px-4 pb-8">
+      {/* max-w-7xl — на один шаг шире, чем остальные секции (max-w-6xl),
+          и лишняя колонка карточек на широких экранах (xl:grid-cols-5). */}
+      <div className="mx-auto w-full max-w-7xl px-4 pt-8 pb-8">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Новые объявления</h2>
+          <h2 className="text-lg font-semibold">Все услуги</h2>
         </div>
-        {services.length === 0 ? (
+        {shuffledServices.length === 0 ? (
           <p className="text-sm text-zinc-500">Пока нет активных услуг</p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {services.map((service) => (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {shuffledServices.map((service) => (
               <ServiceCard key={service.id} service={service} />
             ))}
           </div>

@@ -47,11 +47,16 @@ export function ServiceLocationWidget({ service }: { service: Service }) {
 
   return (
     <div className="mb-6">
+      {/* Без geolocationControl: кнопка "где я" вместе с ползунком зума не
+          помещалась по высоте в невысокий виджет и обрезалась контейнером
+          (overflow: hidden) — а расстояние до себя здесь и так считает
+          отдельная кнопка "Показать расстояние до вас" ниже. */}
       <ServiceMap
         markers={[marker]}
         center={[lat, lng]}
         zoom={13}
-        className="card h-[220px] w-full overflow-hidden"
+        controls={["zoomControl"]}
+        className="card h-[260px] w-full overflow-hidden"
       />
       <div className="mt-2 flex items-center gap-2 text-sm">
         {distanceKm != null ? (

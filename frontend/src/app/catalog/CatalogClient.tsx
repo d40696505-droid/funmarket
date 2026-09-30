@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ServiceCard } from "@/components/ServiceCard";
 import { CITIES } from "@/lib/cities";
@@ -15,45 +15,51 @@ import {
 
 const RADIUS_OPTIONS = [1, 5, 10, 25, 50];
 
+// Все фильтры и номер страницы живут в URL (?q=&categoryId=&page= и т.д.),
+// а не в локальном useState. Раньше при переходе в карточку услуги и
+// возврате назад каталог перемонтировался с исходным URL (обычно голым
+// /catalog), а локальное состояние сбрасывалось на дефолты — фильтр и
+// страница терялись (баги "фильтр сбрасывается" / "назад -> первая
+// страница"). URL-параметры браузер восстанавливает сам при навигации
+// назад, поэтому источник истины перенесён туда.
 export function CatalogClient() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const q = searchParams.get("q") ?? "";
+  const categoryId = searchParams.get("categoryId") ?? "";
+  const priceMin = searchParams.get("priceMin") ?? "";
+  const priceMax = searchParams.get("priceMax") ?? "";
+  const city = searchParams.get("city") ?? "";
+  const sortBy = (searchParams.get("sortBy") as SearchServicesParams["sortBy"]) || "newest";
+  const latParam = searchParams.get("lat");
+  const lngParam = searchParams.get("lng");
+  const near = latParam && lngParam ? { lat: Number(latParam), lng: Number(lngParam) } : null;
+  const radiusKm = Number(searchParams.get("radiusKm") ?? 10);
+  const page = Math.max(1, Number(searchParams.get("page") ?? 1));
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [result, setResult] = useState<SearchServicesResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [geoError, setGeoError] = useState<string | null>(null);
 
-  const [q, setQ] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [city, setCity] = useState("");
-  const [sortBy, setSortBy] = useState<SearchServicesParams["sortBy"]>("newest");
-  const [near, setNear] = useState<{ lat: number; lng: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState(10);
-  const [page, setPage] = useState(1);
-
-  // Подхватывает ?q=/?categoryId=/?city=/?lat=&lng=&radiusKm= из ссылки
-  // (поиск и город в шапке, «рядом со мной», карусели категорий на
-  // главной) — не в useEffect (React-паттерн "adjusting state when a prop
-  // changes", react.dev), а прямо в теле рендера под сравнением с
-  // последним увиденным searchParams. На одном lazy useState-инициализаторе
-  // это ломалось: переход на /catalog?city=X, уже находясь на /catalog, не
-  // перемонтирует компонент, и инициализатор второй раз не выполняется —
-  // фильтр молча оставался старым.
-  const [lastParams, setLastParams] = useState(searchParams.toString());
-  if (searchParams.toString() !== lastParams) {
-    setLastParams(searchParams.toString());
-    setQ(searchParams.get("q") ?? "");
-    setCategoryId(searchParams.get("categoryId") ?? "");
-    setCity(searchParams.get("city") ?? "");
-    const lat = searchParams.get("lat");
-    const lng = searchParams.get("lng");
-    if (lat && lng) {
-      setNear({ lat: Number(lat), lng: Number(lng) });
-      const radius = searchParams.get("radiusKm");
-      if (radius) setRadiusKm(Number(radius));
+  // Меняет URL-параметры каталога поверх текущих (не полная перезапись —
+  // остальные фильтры сохраняются). replace, не push: правки фильтров не
+  // должны плодить отдельные записи в истории браузера — иначе "назад" из
+  // карточки услуги приходилось бы жать по многу раз, чтобы выйти из
+  // каталога. resetPage=true — смена любого фильтра, кроме самой пагинации,
+  // возвращает на первую страницу (иначе легко попасть на пустую страницу
+  // N при меньшем результате).
+  function updateParams(patch: Record<string, string | null>, resetPage = true) {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === null || value === "") params.delete(key);
+      else params.set(key, value);
     }
-    setPage(1);
+    if (resetPage) params.delete("page");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
   useEffect(() => {
@@ -82,7 +88,8 @@ export function CatalogClient() {
       .then(setResult)
       .catch(() => setResult(null))
       .finally(() => setLoading(false));
-  }, [q, categoryId, priceMin, priceMax, city, sortBy, near, radiusKm, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q, categoryId, priceMin, priceMax, city, sortBy, near?.lat, near?.lng, radiusKm, page]);
 
   function handleFindNearMe() {
     setGeoError(null);
@@ -92,8 +99,11 @@ export function CatalogClient() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setNear({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setPage(1);
+        updateParams({
+          lat: String(pos.coords.latitude),
+          lng: String(pos.coords.longitude),
+          radiusKm: String(radiusKm),
+        });
       },
       () => setGeoError("Не удалось определить местоположение"),
     );
@@ -117,19 +127,13 @@ export function CatalogClient() {
       <div className="mb-6 flex flex-wrap gap-3">
         <input
           value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => updateParams({ q: e.target.value })}
           placeholder="Поиск..."
           className="input min-w-[200px] flex-1"
         />
         <select
           value={categoryId}
-          onChange={(e) => {
-            setCategoryId(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => updateParams({ categoryId: e.target.value })}
           className="input"
         >
           <option value="">Все категории</option>
@@ -141,30 +145,21 @@ export function CatalogClient() {
         </select>
         <input
           value={priceMin}
-          onChange={(e) => {
-            setPriceMin(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => updateParams({ priceMin: e.target.value })}
           type="number"
           placeholder="Цена от"
           className="input w-28"
         />
         <input
           value={priceMax}
-          onChange={(e) => {
-            setPriceMax(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => updateParams({ priceMax: e.target.value })}
           type="number"
           placeholder="Цена до"
           className="input w-28"
         />
         <select
           value={city}
-          onChange={(e) => {
-            setCity(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => updateParams({ city: e.target.value })}
           className="input"
         >
           <option value="">Все города</option>
@@ -176,10 +171,7 @@ export function CatalogClient() {
         </select>
         <select
           value={sortBy}
-          onChange={(e) => {
-            setSortBy(e.target.value as SearchServicesParams["sortBy"]);
-            setPage(1);
-          }}
+          onChange={(e) => updateParams({ sortBy: e.target.value })}
           className="input"
         >
           <option value="newest">Сначала новые</option>
@@ -197,7 +189,7 @@ export function CatalogClient() {
         {near && (
           <select
             value={radiusKm}
-            onChange={(e) => setRadiusKm(Number(e.target.value))}
+            onChange={(e) => updateParams({ radiusKm: e.target.value })}
             className="input"
           >
             {RADIUS_OPTIONS.map((r) => (
@@ -227,7 +219,7 @@ export function CatalogClient() {
               <button
                 type="button"
                 disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
+                onClick={() => updateParams({ page: String(page - 1) }, false)}
                 className="disabled:opacity-40"
               >
                 ← Назад
@@ -238,7 +230,7 @@ export function CatalogClient() {
               <button
                 type="button"
                 disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
+                onClick={() => updateParams({ page: String(page + 1) }, false)}
                 className="disabled:opacity-40"
               >
                 Вперёд →
