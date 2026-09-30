@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -130,6 +131,12 @@ export default function SellerSchedulePage() {
 
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10">
+      <Link
+        href={`/my-services/${serviceId}`}
+        className="mb-4 inline-flex items-center gap-1 text-sm text-zinc-500 hover:underline"
+      >
+        ← Назад к услуге
+      </Link>
       <h1 className="mb-6 text-2xl font-semibold">Расписание</h1>
 
       <form onSubmit={handleSave} className="mb-10 flex flex-col gap-3">
