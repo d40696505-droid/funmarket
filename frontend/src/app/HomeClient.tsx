@@ -51,42 +51,51 @@ export function HomeClient({
             без этого она перехватывала клики по карусели под собой по всей
             своей ширине, даже там, где сама плашка не нарисована. */}
         <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pointer-events-none">
-          {/* Размеры текста/отступов подобраны вручную под увеличенную на 15%
-              высоту и 10% ширину плашки (см. .hero-glass, .hero-map-card в
-              globals.css) — не связаны напрямую с шагами Tailwind. */}
-          <div className="hero-glass pointer-events-auto flex items-center gap-[1.15rem]">
-            <div>
-              <h1 className="text-[1.29rem] font-bold sm:text-[1.4375rem]">
-                Навыки и активности рядом с вами
-              </h1>
-              <p className="mt-1 text-[0.8625rem] text-white/85 sm:text-[1.00625rem]">
-                Рыбалка, охота, путешествия, кулинария, ремесло — найдите мастера или
-                организатора рядом с собой, на карте или в каталоге.
-              </p>
+          {/* Та же сетка, что у карточек снизу (grid-cols-2 sm:3 lg:4 xl:5) —
+              плашка растянута на первые 3 колонки (col-span-3), поэтому её
+              правый край всегда точно совпадает с правым краем 3-й карточки,
+              на любой ширине экрана, а не подобран вручную под один брейкпоинт. */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="hero-glass pointer-events-auto col-span-2 flex items-stretch gap-[1.15rem] sm:col-span-3">
+              <div className="flex flex-1 flex-col justify-center py-[1.15rem] pr-[1.15rem] pl-[1.15rem] sm:py-[1.4375rem] sm:pr-0 sm:pl-[1.4375rem]">
+                <h1 className="text-[1.29rem] font-bold sm:text-[1.4375rem]">
+                  Навыки и активности рядом с вами
+                </h1>
+                <p className="mt-1 text-[0.8625rem] text-white/85 sm:text-[1.00625rem]">
+                  Рыбалка, охота, путешествия, кулинария, ремесло — найдите мастера или
+                  организатора рядом с собой, на карте или в каталоге.
+                </p>
+                <Link
+                  href="/catalog"
+                  className="btn-primary mt-[0.8625rem] inline-flex px-[1.15rem] py-[0.575rem] text-[1.00625rem]"
+                >
+                  Весь каталог →
+                </Link>
+              </div>
+
+              {/* Виджет карты внутри плашки, на всю высоту блока, без своих
+                  отступов — справа впритык к краю плашки (скругления совпадают
+                  с .hero-glass благодаря overflow-hidden у обоих), слева без
+                  скруглений, встык с текстом. Сама не едет, просто показывает
+                  точки услуг и целиком ведёт на /map. */}
               <Link
-                href="/catalog"
-                className="btn-primary mt-[0.8625rem] inline-flex px-[1.15rem] py-[0.575rem] text-[1.00625rem]"
+                href="/map"
+                className="hero-map-card group hidden w-[190px] shrink-0 sm:block sm:w-[240px]"
               >
-                Весь каталог →
+                <ServiceMap markers={markers} zoom={9} controls={[]} className="pointer-events-none h-full w-full" />
+                <div className="hero-marquee-card-info">
+                  <p className="text-xs font-medium text-white">
+                    Смотреть на карте
+                    <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">
+                      →
+                    </span>
+                  </p>
+                  <p className="text-[10px] text-white/75">
+                    {markers.length > 0 ? `${markers.length} предложений рядом` : "Все услуги рядом"}
+                  </p>
+                </div>
               </Link>
             </div>
-
-            {/* Виджет карты внутри плашки, справа от текста — сама не едет,
-                просто показывает точки услуг и целиком ведёт на /map. */}
-            <Link href="/map" className="hero-map-card group hidden shrink-0 sm:block">
-              <ServiceMap markers={markers} zoom={9} controls={[]} className="pointer-events-none h-full w-full" />
-              <div className="hero-marquee-card-info">
-                <p className="text-xs font-medium text-white">
-                  Смотреть на карте
-                  <span className="ml-1 inline-block transition-transform group-hover:translate-x-0.5">
-                    →
-                  </span>
-                </p>
-                <p className="text-[10px] text-white/75">
-                  {markers.length > 0 ? `${markers.length} предложений рядом` : "Все услуги рядом"}
-                </p>
-              </div>
-            </Link>
           </div>
         </div>
       </div>

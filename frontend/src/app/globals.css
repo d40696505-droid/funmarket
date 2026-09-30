@@ -176,29 +176,16 @@ body {
     }
   }
 
-  /* Карточка-виджет карты внутри текстовой плашки, справа от заголовка —
-     самостоятельная карточка (не часть .hero-marquee-card), со своей рамкой,
-     чтобы отличаться от карточек бегущей ленты на фоне. */
+  /* Карточка-виджет карты внутри текстовой плашки, на всю высоту блока
+     (высоту задаёт flex items-stretch у родителя .hero-glass, тут её нет
+     специально). Справа — те же скругления, что у .hero-glass (совпадают
+     с ним, т.к. плашка сама overflow-hidden), слева — совсем без
+     скруглений, встык с текстом. */
   .hero-map-card {
     position: relative;
     display: block;
     overflow: hidden;
-    width: 150px;
-    height: 150px;
-    border-radius: 0.9rem;
-    border: 2px solid rgba(255, 255, 255, 0.55);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  .hero-map-card:hover {
-    border-color: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  }
-  @media (min-width: 768px) {
-    .hero-map-card {
-      width: 190px;
-      height: 190px;
-    }
+    border-radius: 0 1.5rem 1.5rem 0;
   }
   @keyframes hero-marquee-scroll {
     from {
@@ -220,19 +207,16 @@ body {
        угол проступает неразмытый кусок фона — карточка из ленты под низом.
        overflow-hidden форсирует обрезку по границе блока. */
     @apply h-full overflow-hidden rounded-3xl border border-white/40 text-white shadow-2xl backdrop-blur-xl;
-    /* max-w-xl (36rem) + 10% ширины; паддинг — от p-4/sm:p-5 (1rem/1.25rem) + 15% высоты. */
-    max-width: 39.6rem;
-    padding: 1.15rem;
+    /* Ширину теперь задаёт col-span-3 в разметке (HomeClient.tsx) — плашка
+       занимает первые 3 колонки той же сетки, что и карточки снизу, поэтому
+       её правый край всегда совпадает с правым краем 3-й карточки. Паддинг
+       — не здесь, а у внутренней обёртки текста в JSX (у карты внутри
+       плашки своих отступов нет — она должна доходить до краёв блока). */
     background: linear-gradient(
       160deg,
       rgba(255, 255, 255, 0.22),
       rgba(120, 160, 100, 0.18)
     );
-  }
-  @media (min-width: 640px) {
-    .hero-glass {
-      padding: 1.4375rem;
-    }
   }
 
   /* Раньше — стеклянная карточка поверх фото-фона body; теперь body снова
